@@ -1,0 +1,67 @@
+services:
+  # 1. PostgreSQL (For Users, Auth)
+  postgres:
+    image: postgres:15-alpine
+    container_name: crypto_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
+      POSTGRES_DB: ${POSTGRES_DB:-crypto_auth}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # UI for PostgreSQL
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+  # Truy cập: localhost:8080
+  # System: PostgreSQL
+  # Server: crypto_postgres
+
+  # 2. MongoDB (For News, Logs)
+  mongo:
+    image: mongo:6.0
+    container_name: crypto_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-root123}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # UI for MongoDB (Truy cập: localhost:8081)
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_USER:-root}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_PASSWORD:-root123}
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER:-root}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-root123}
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+
+    depends_on:
+      - mongo
+
+  # 3. Redis (For Caching & Simple Queue)
+  redis:
+    image: redis:alpine
+    container_name: crypto_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+  mongo_data:
