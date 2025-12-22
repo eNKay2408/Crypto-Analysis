@@ -1,4 +1,4 @@
-![alt text](./images/image-3.png)
+![alt text](../images/image-3.png)
 
 ```json
 // --- SQL: PostgreSQL (Quản lý User & Setting) ---

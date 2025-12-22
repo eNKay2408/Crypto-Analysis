@@ -9,7 +9,7 @@ Tài liệu mô tả kiến trúc hệ thống Tài chính & Crypto, phát tri�
 - **Mô hình:** Tất cả code (Backend API, Crawler) chạy chung hoặc song song, kết nối trực tiếp vào Database.
 - **Database:** Hybrid. PostgreSQL lưu User/Auth. MongoDB lưu Tin tức (News).
 
-![alt text](./images/image.png)
+![alt text](../images/image.png)
 
 ## Giai đoạn 2: Asynchronous & Caching (Sprint 2)
 
@@ -18,7 +18,7 @@ Tài liệu mô tả kiến trúc hệ thống Tài chính & Crypto, phát tri�
 - **Redis:** Thêm vào làm Caching (lưu tin hot) và Message Broker đơn giản.
 - **AI Service:** Tách riêng, nhận lệnh từ Backend qua Redis Pub/Sub hoặc Queue.
 
-![alt text](./images/image-1.png)
+![alt text](../images/image-1.png)
 
 ## Giai đoạn 3: Final Architecture (Production Scale)
 
@@ -27,4 +27,4 @@ Tài liệu mô tả kiến trúc hệ thống Tài chính & Crypto, phát tri�
 - **Load Balancer:** Phân tải request.
 - **Separation:** Tách hẳn Read API và Write Worker.
 
-![alt text](./images/image-2.png)
+![alt text](../images/image-2.png)
