@@ -1,0 +1,10 @@
+requests
+bs4
+torch
+transformers
+pandas
+apscheduler
+pymongo
+dotenv
+pymongo
+psycopg2
