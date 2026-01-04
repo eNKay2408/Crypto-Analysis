@@ -1,0 +1,14 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: stock_analysis
+      POSTGRES_USER: admin
+    volumes:
+      - timescaledata:/var/lib/postgresql/data
+volumes:
+  timescaledata:
