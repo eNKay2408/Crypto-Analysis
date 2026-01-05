@@ -120,8 +120,8 @@ const generateMockData = (numCandles: number = 100, interval: string = "1h"): Ca
                         interval === "4h" ? 14400 :
                             interval === "1d" ? 86400 : 3600;
 
-    for (let i = numCandles; i >= 0; i--) {
-        const time = now - (i * intervalSeconds);
+    for (let i = numCandles; i > 0; i--) {
+        const time = now - ((i - 1) * intervalSeconds);
         const volatility = basePrice * 0.02;
         const open = basePrice + (Math.random() - 0.5) * volatility;
         const close = open + (Math.random() - 0.5) * volatility;

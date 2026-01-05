@@ -6,9 +6,14 @@ import {
   ISeriesApi,
   UTCTimestamp,
   CandlestickSeries,
-  HistogramSeries
+  HistogramSeries,
 } from "lightweight-charts";
-import { fetchCandlestickData, fetchMarketStats, CandlestickData, MarketStats } from "../../services/marketDataService";
+import {
+  fetchCandlestickData,
+  fetchMarketStats,
+  CandlestickData,
+  MarketStats,
+} from "../../services/marketDataService";
 
 interface ChartProps {
   symbol?: string;
@@ -17,7 +22,7 @@ interface ChartProps {
 
 export const TradingViewStaticChart = ({
   symbol = "BTC/USDT",
-  interval = "1h"
+  interval = "1h",
 }: ChartProps) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -46,20 +51,24 @@ export const TradingViewStaticChart = ({
 
       if (candlestickSeriesRef.current && volumeSeriesRef.current) {
         // Update candlestick data
-        candlestickSeriesRef.current.setData(candleData.map(d => ({
-          time: d.time as UTCTimestamp,
-          open: d.open,
-          high: d.high,
-          low: d.low,
-          close: d.close,
-        })));
+        candlestickSeriesRef.current.setData(
+          candleData.map((d) => ({
+            time: d.time as UTCTimestamp,
+            open: d.open,
+            high: d.high,
+            low: d.low,
+            close: d.close,
+          }))
+        );
 
         // Update volume data
-        volumeSeriesRef.current.setData(candleData.map(d => ({
-          time: d.time as UTCTimestamp,
-          value: d.volume || 0,
-          color: d.close >= d.open ? "#10b98133" : "#ef444433",
-        })));
+        volumeSeriesRef.current.setData(
+          candleData.map((d) => ({
+            time: d.time as UTCTimestamp,
+            value: d.volume || 0,
+            color: d.close >= d.open ? "#10b98133" : "#ef444433",
+          }))
+        );
 
         // Fit content
         chartRef.current?.timeScale().fitContent();
@@ -192,10 +201,23 @@ export const TradingViewStaticChart = ({
               </div>
               <div className="mt-1 flex items-baseline gap-3">
                 <span className="text-2xl font-bold text-slate-100">
-                  ${stats.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {stats.currentPrice.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
-                <span className={`text-sm font-semibold ${stats.priceChange >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                  {stats.priceChange >= 0 ? "+" : ""}{stats.priceChange.toFixed(2)} ({stats.priceChangePercent >= 0 ? "+" : ""}{stats.priceChangePercent.toFixed(2)}%)
+                <span
+                  className={`text-sm font-semibold ${
+                    stats.priceChange >= 0
+                      ? "text-emerald-400"
+                      : "text-rose-400"
+                  }`}
+                >
+                  {stats.priceChange >= 0 ? "+" : ""}
+                  {stats.priceChange.toFixed(2)} (
+                  {stats.priceChangePercent >= 0 ? "+" : ""}
+                  {stats.priceChangePercent.toFixed(2)}%)
                 </span>
               </div>
             </div>
@@ -204,13 +226,21 @@ export const TradingViewStaticChart = ({
               <div>
                 <div className="text-slate-500">24h High</div>
                 <div className="mt-1 font-semibold text-slate-200">
-                  ${stats.high24h.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {stats.high24h.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </div>
               </div>
               <div>
                 <div className="text-slate-500">24h Low</div>
                 <div className="mt-1 font-semibold text-slate-200">
-                  ${stats.low24h.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  $
+                  {stats.low24h.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </div>
               </div>
               <div>
@@ -228,10 +258,11 @@ export const TradingViewStaticChart = ({
               <button
                 key={int.value}
                 onClick={() => setSelectedInterval(int.value)}
-                className={`rounded px-3 py-1.5 text-xs font-semibold transition-all ${selectedInterval === int.value
-                  ? "bg-slate-700 text-slate-100"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-300"
-                  }`}
+                className={`rounded px-3 py-1.5 text-xs font-semibold transition-all ${
+                  selectedInterval === int.value
+                    ? "bg-slate-700 text-slate-100"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-300"
+                }`}
               >
                 {int.label}
               </button>
@@ -246,7 +277,9 @@ export const TradingViewStaticChart = ({
           <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-slate-900/80">
             <div className="flex flex-col items-center gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-slate-400"></div>
-              <span className="text-sm text-slate-400">Loading chart data...</span>
+              <span className="text-sm text-slate-400">
+                Loading chart data...
+              </span>
             </div>
           </div>
         )}

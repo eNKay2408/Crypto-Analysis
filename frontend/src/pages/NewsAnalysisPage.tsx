@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { NewsTimeline } from "../components/news/NewsTimeline";
 import { SentimentChart } from "../components/news/SentimentChart";
 import { CausalAnalysis } from "../components/news/CausalAnalysis";
-import { NewsFilters } from "../components/news/NewsFilters";
 
 import type { NewsItem, CausalEvent } from "../types/news";
 
@@ -14,7 +12,9 @@ export const NewsAnalysisPage = () => {
   const [causalEvents, setCausalEvents] = useState<CausalEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState({
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
     end: new Date().toISOString().split("T")[0],
   });
   const [sentimentFilter, setSentimentFilter] = useState<string>("all");
@@ -27,14 +27,15 @@ export const NewsAnalysisPage = () => {
     setLoading(true);
     try {
       // Simulate API delay for realistic loading
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       // Enhanced mock data with more variety
       const mockNews: NewsItem[] = [
         {
           id: "1",
           title: "Bitcoin ETF Approval Expected by Major Institutions",
-          content: "Leading financial institutions including BlackRock and Fidelity predict Bitcoin ETF approval within the next few weeks, citing positive regulatory developments and increased institutional interest in cryptocurrency markets.",
+          content:
+            "Leading financial institutions including BlackRock and Fidelity predict Bitcoin ETF approval within the next few weeks, citing positive regulatory developments and increased institutional interest in cryptocurrency markets.",
           source: "CryptoNews",
           publishedAt: "2024-12-28T10:00:00Z",
           sentiment: {
@@ -52,7 +53,8 @@ export const NewsAnalysisPage = () => {
         {
           id: "2",
           title: "New Regulatory Framework Proposed for Crypto Trading",
-          content: "European Union proposes comprehensive regulatory framework that could impact cryptocurrency trading across member states, raising concerns among market participants about compliance costs.",
+          content:
+            "European Union proposes comprehensive regulatory framework that could impact cryptocurrency trading across member states, raising concerns among market participants about compliance costs.",
           source: "FinancialTimes",
           publishedAt: "2024-12-28T14:30:00Z",
           sentiment: {
@@ -70,7 +72,8 @@ export const NewsAnalysisPage = () => {
         {
           id: "3",
           title: "Major Exchange Confirms Security Incident",
-          content: "One of the world's largest cryptocurrency exchanges confirms a security breach affecting user accounts, prompting immediate security audits across the industry.",
+          content:
+            "One of the world's largest cryptocurrency exchanges confirms a security breach affecting user accounts, prompting immediate security audits across the industry.",
           source: "CryptoAlert",
           publishedAt: "2024-12-28T18:00:00Z",
           sentiment: {
@@ -88,7 +91,8 @@ export const NewsAnalysisPage = () => {
         {
           id: "4",
           title: "Institutional Adoption Reaches New Milestone",
-          content: "Fortune 500 companies continue to add Bitcoin to their treasury reserves, with three major corporations announcing significant purchases this week.",
+          content:
+            "Fortune 500 companies continue to add Bitcoin to their treasury reserves, with three major corporations announcing significant purchases this week.",
           source: "Bloomberg",
           publishedAt: "2024-12-27T09:15:00Z",
           sentiment: {
@@ -106,7 +110,8 @@ export const NewsAnalysisPage = () => {
         {
           id: "5",
           title: "Market Analysis: Bitcoin Consolidation Phase",
-          content: "Technical analysts suggest Bitcoin is entering a healthy consolidation phase after recent gains, with support levels holding strong.",
+          content:
+            "Technical analysts suggest Bitcoin is entering a healthy consolidation phase after recent gains, with support levels holding strong.",
           source: "CoinDesk",
           publishedAt: "2024-12-27T16:45:00Z",
           sentiment: {
@@ -124,7 +129,8 @@ export const NewsAnalysisPage = () => {
         {
           id: "6",
           title: "DeFi Protocol Launches Revolutionary Yield Strategy",
-          content: "New decentralized finance protocol introduces innovative yield farming strategy, attracting over $500M in total value locked within 24 hours.",
+          content:
+            "New decentralized finance protocol introduces innovative yield farming strategy, attracting over $500M in total value locked within 24 hours.",
           source: "DeFiPulse",
           publishedAt: "2024-12-26T11:30:00Z",
           sentiment: {
@@ -148,7 +154,8 @@ export const NewsAnalysisPage = () => {
           priceChange: 2500,
           priceChangePercent: 5.95,
           trend: "up",
-          primaryReason: "Strong positive sentiment from institutional ETF approval expectations drove significant buying pressure, with major financial institutions expressing confidence in regulatory approval timeline.",
+          primaryReason:
+            "Strong positive sentiment from institutional ETF approval expectations drove significant buying pressure, with major financial institutions expressing confidence in regulatory approval timeline.",
           confidence: 0.92,
         },
         {
@@ -157,7 +164,8 @@ export const NewsAnalysisPage = () => {
           priceChange: -3500,
           priceChangePercent: -7.87,
           trend: "down",
-          primaryReason: "Combined negative impact from regulatory uncertainty and security breach concerns triggered widespread sell-off, overwhelming earlier positive momentum.",
+          primaryReason:
+            "Combined negative impact from regulatory uncertainty and security breach concerns triggered widespread sell-off, overwhelming earlier positive momentum.",
           confidence: 0.91,
         },
         {
@@ -166,7 +174,8 @@ export const NewsAnalysisPage = () => {
           priceChange: 1100,
           priceChangePercent: 2.65,
           trend: "up",
-          primaryReason: "Institutional adoption milestone outweighed neutral consolidation sentiment, demonstrating strong underlying demand from corporate treasuries.",
+          primaryReason:
+            "Institutional adoption milestone outweighed neutral consolidation sentiment, demonstrating strong underlying demand from corporate treasuries.",
           confidence: 0.87,
         },
         {
@@ -175,7 +184,8 @@ export const NewsAnalysisPage = () => {
           priceChange: 600,
           priceChangePercent: 1.46,
           trend: "up",
-          primaryReason: "DeFi innovation and capital inflow created positive spillover effects across the broader crypto market.",
+          primaryReason:
+            "DeFi innovation and capital inflow created positive spillover effects across the broader crypto market.",
           confidence: 0.85,
         },
       ];
@@ -221,26 +231,21 @@ export const NewsAnalysisPage = () => {
               </h1>
             </div>
             <p className="ml-15 mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-              Advanced sentiment analysis and causal impact assessment powered by AI.
-              Discover how news events influence cryptocurrency price movements.
+              Advanced sentiment analysis and causal impact assessment powered
+              by AI. Discover how news events influence cryptocurrency price
+              movements.
             </p>
           </div>
 
           {/* Live indicator */}
           <div className="flex items-center gap-2 rounded-full border border-slate-600 bg-slate-700 px-4 py-2">
             <div className="h-2 w-2 animate-pulse rounded-full bg-slate-400"></div>
-            <span className="text-xs font-medium text-slate-300">Live Analysis</span>
+            <span className="text-xs font-medium text-slate-300">
+              Live Analysis
+            </span>
           </div>
         </div>
       </div>
-
-      {/* Filters */}
-      <NewsFilters
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-        sentimentFilter={sentimentFilter}
-        onSentimentFilterChange={setSentimentFilter}
-      />
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32">
@@ -260,8 +265,18 @@ export const NewsAnalysisPage = () => {
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-700">
-                    <svg className="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    <svg
+                      className="h-5 w-5 text-slate-300"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
                     </svg>
                   </div>
                   <h2 className="text-lg font-semibold text-slate-100">
@@ -282,8 +297,18 @@ export const NewsAnalysisPage = () => {
               <div className="mb-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-700">
-                    <svg className="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <svg
+                      className="h-5 w-5 text-slate-300"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -291,29 +316,13 @@ export const NewsAnalysisPage = () => {
                       Causal Analysis: Price Impact
                     </h2>
                     <p className="mt-1 text-sm text-slate-400">
-                      AI-powered analysis showing how news events correlate with price movements
+                      AI-powered analysis showing how news events correlate with
+                      price movements
                     </p>
                   </div>
                 </div>
               </div>
               <CausalAnalysis events={causalEvents} />
-            </div>
-          </section>
-
-          {/* News Timeline */}
-          <section className="rounded-xl border border-slate-700 bg-slate-800 p-6">
-            <div>
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-700">
-                  <svg className="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h2 className="text-lg font-semibold text-slate-100">
-                  News Timeline
-                </h2>
-              </div>
-              <NewsTimeline newsData={filteredNews} />
             </div>
           </section>
         </>
