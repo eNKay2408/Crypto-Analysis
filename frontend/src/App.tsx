@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { DashboardPage } from "./pages/DashboardPage";
+import { NewsAnalysisPage } from "./pages/NewsAnalysisPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 
@@ -15,6 +16,14 @@ function App() {
         element={
           <DashboardLayout>
             <DashboardPage />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/news-analysis"
+        element={
+          <DashboardLayout>
+            <NewsAnalysisPage />
           </DashboardLayout>
         }
       />
