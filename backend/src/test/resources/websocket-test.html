@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Multi-Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        color: white;
+        text-align: center;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .control-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .control-group label {
+        font-weight: bold;
+        color: #333;
+      }
+
+      input,
+      select {
+        padding: 8px 12px;
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 14px;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-danger {
+        background: #f56565;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #e53e3e;
+      }
+
+      .btn-secondary {
+        background: #48bb78;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #38a169;
+      }
+
+      .stats {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .connections-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 20px;
+      }
+
+      .connection-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .connection-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eee;
+      }
+
+      .connection-title {
+        font-weight: bold;
+        font-size: 16px;
+        color: #333;
+      }
+
+      .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+
+      .status-connected {
+        background: #48bb78;
+        color: white;
+      }
+
+      .status-disconnected {
+        background: #cbd5e0;
+        color: #4a5568;
+      }
+
+      .status-connecting {
+        background: #ed8936;
+        color: white;
+      }
+
+      .messages {
+        max-height: 400px;
+        overflow-y: auto;
+        background: #f7fafc;
+        border-radius: 5px;
+        padding: 10px;
+      }
+
+      .message {
+        background: white;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 5px;
+        border-left: 4px solid #667eea;
+        font-size: 13px;
+      }
+
+      .message-time {
+        color: #718096;
+        font-size: 11px;
+        margin-bottom: 5px;
+      }
+
+      .message-data {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
+        font-family: "Courier New", monospace;
+      }
+
+      .message-closed {
+        border-left-color: #48bb78;
+      }
+
+      .close-btn {
+        background: #f56565;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+
+      .close-btn:hover {
+        background: #e53e3e;
+      }
+
+      .no-connections {
+        text-align: center;
+        padding: 60px 20px;
+        color: white;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 WebSocket Multi-Connection Test Dashboard</h1>
+
+      <div class="controls">
+        <div class="control-group">
+          <label>Symbol:</label>
+          <input
+            type="text"
+            id="symbol"
+            value="BTCUSDT"
+            placeholder="e.g., BTCUSDT"
+          />
+
+          <label>Interval:</label>
+          <select id="interval">
+            <option value="1m">1 minute</option>
+            <option value="3m">3 minutes</option>
+            <option value="5m">5 minutes</option>
+            <option value="15m">15 minutes</option>
+            <option value="30m">30 minutes</option>
+            <option value="1h">1 hour</option>
+            <option value="4h">4 hours</option>
+            <option value="1d">1 day</option>
+          </select>
+
+          <button class="btn-primary" onclick="addConnection()">
+            ➕ Add Connection
+          </button>
+          <button class="btn-danger" onclick="disconnectAll()">
+            ❌ Disconnect All
+          </button>
+          <button class="btn-secondary" onclick="checkBackendStatus()">
+            🔍 Check Backend
+          </button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">Active Connections</div>
+          <div class="stat-value" id="activeCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Messages</div>
+          <div class="stat-value" id="messageCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Messages/Second</div>
+          <div class="stat-value" id="messageRate">0</div>
+        </div>
+      </div>
+
+      <div id="connectionsContainer" class="connections-grid"></div>
+
+      <div id="noConnections" class="no-connections">
+        No active connections. Click "Add Connection" to start!
+      </div>
+    </div>
+
+    <script>
+      const connections = new Map();
+      let connectionCounter = 0;
+      let totalMessages = 0;
+      let messagesLastSecond = 0;
+
+      // Update stats every second
+      setInterval(() => {
+        document.getElementById("messageRate").textContent = messagesLastSecond;
+        messagesLastSecond = 0;
+        updateStats();
+      }, 1000);
+
+      function addConnection() {
+        const symbol = document
+          .getElementById("symbol")
+          .value.trim()
+          .toUpperCase();
+        const interval = document.getElementById("interval").value;
+
+        if (!symbol) {
+          alert("Please enter a symbol");
+          return;
+        }
+
+        connectionCounter++;
+        const id = `conn-${connectionCounter}`;
+
+        const connection = {
+          id,
+          symbol,
+          interval,
+          client: null,
+          status: "connecting",
+          messages: [],
+          messageCount: 0,
+        };
+
+        connections.set(id, connection);
+        renderConnection(connection);
+        connectWebSocket(connection);
+        updateStats();
+      }
+
+      function renderConnection(conn) {
+        document.getElementById("noConnections").style.display = "none";
+
+        const container = document.getElementById("connectionsContainer");
+        const card = document.createElement("div");
+        card.className = "connection-card";
+        card.id = conn.id;
+
+        card.innerHTML = `
+                <div class="connection-header">
+                    <div class="connection-title">
+                        ${conn.symbol} - ${conn.interval}
+                    </div>
+                    <div>
+                        <span class="status-badge status-${conn.status}" id="${
+          conn.id
+        }-status">
+                            ${conn.status.toUpperCase()}
+                        </span>
+                        <button class="close-btn" onclick="closeConnection('${
+                          conn.id
+                        }')">✕</button>
+                    </div>
+                </div>
+                <div class="messages" id="${conn.id}-messages"></div>
+            `;
+
+        container.appendChild(card);
+      }
+
+      function connectWebSocket(conn) {
+        updateConnectionStatus(conn.id, "connecting");
+
+        const client = new StompJs.Client({
+          webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+
+          reconnectDelay: 5000,
+
+          onConnect: () => {
+            updateConnectionStatus(conn.id, "connected");
+
+            // Send subscription request
+            client.publish({
+              destination: `/app/subscribe/kline/${conn.symbol.toLowerCase()}/${
+                conn.interval
+              }`,
+              body: "",
+            });
+
+            // Subscribe to receive messages
+            client.subscribe(
+              `/topic/kline/${conn.symbol.toLowerCase()}/${conn.interval}`,
+              (message) => {
+                const kline = JSON.parse(message.body);
+                addMessage(conn.id, kline);
+              }
+            );
+          },
+
+          onDisconnect: () => {
+            updateConnectionStatus(conn.id, "disconnected");
+          },
+
+          onStompError: (frame) => {
+            console.error("STOMP Error:", frame);
+            updateConnectionStatus(conn.id, "error");
+          },
+        });
+
+        client.activate();
+        conn.client = client;
+      }
+
+      function addMessage(connId, kline) {
+        const conn = connections.get(connId);
+        if (!conn) return;
+
+        conn.messageCount++;
+        totalMessages++;
+        messagesLastSecond++;
+
+        const messagesDiv = document.getElementById(`${connId}-messages`);
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${
+          kline.isClosed ? "message-closed" : ""
+        }`;
+
+        const time = new Date(kline.closeTime).toLocaleTimeString();
+
+        messageDiv.innerHTML = `
+                <div class="message-time">
+                    ${time} ${
+          kline.isClosed ? "🔒 Closed" : "🔄 Active"
+        } - Message #${conn.messageCount}
+                </div>
+                <div class="message-data">
+                    <div><strong>Open:</strong> ${kline.open}</div>
+                    <div><strong>High:</strong> ${kline.high}</div>
+                    <div><strong>Low:</strong> ${kline.low}</div>
+                    <div><strong>Close:</strong> ${kline.close}</div>
+                    <div><strong>Volume:</strong> ${kline.volume}</div>
+                    <div><strong>Interval:</strong> ${kline.interval}</div>
+                </div>
+            `;
+
+        messagesDiv.insertBefore(messageDiv, messagesDiv.firstChild);
+
+        // Keep only last 10 messages
+        while (messagesDiv.children.length > 10) {
+          messagesDiv.removeChild(messagesDiv.lastChild);
+        }
+
+        updateStats();
+      }
+
+      function updateConnectionStatus(connId, status) {
+        const conn = connections.get(connId);
+        if (conn) {
+          conn.status = status;
+          const badge = document.getElementById(`${connId}-status`);
+          if (badge) {
+            badge.className = `status-badge status-${status}`;
+            badge.textContent = status.toUpperCase();
+          }
+        }
+        updateStats();
+      }
+
+        function closeConnection(connId) {
+            const conn = connections.get(connId);
+            if (conn && conn.client && conn.client.connected) {
+                // Send unsubscribe message to backend BEFORE disconnecting
+                try {
+                    conn.client.publish({
+                        destination: `/app/unsubscribe/kline/${conn.symbol.toLowerCase()}/${conn.interval}`,
+                        body: ''
+                    });
+                    console.info(`Sent unsubscribe message for ${conn.symbol} ${conn.interval}`); // Changed log.info to console.info
+                } catch (error) {
+                    console.error('Error sending unsubscribe:', error);
+                }
+                
+                // Wait a bit for the message to be sent, then disconnect
+                setTimeout(() => {
+                    conn.client.deactivate();
+                }, 100);
+            }
+            
+            const card = document.getElementById(connId);
+            if (card) {
+                card.remove();
+            }
+            
+            connections.delete(connId);
+            updateStats();
+            
+            if (connections.size === 0) {
+                document.getElementById('noConnections').style.display = 'block';
+            }
+        }
+
+      function disconnectAll() {
+        connections.forEach((conn, id) => {
+          closeConnection(id);
+        });
+      }
+
+      function updateStats() {
+        const activeCount = Array.from(connections.values()).filter(
+          (c) => c.status === "connected"
+        ).length;
+
+        document.getElementById("activeCount").textContent = activeCount;
+        document.getElementById("messageCount").textContent = totalMessages;
+      }
+
+      async function checkBackendStatus() {
+        try {
+          const response = await fetch(
+            "http://localhost:8080/api/websocket/health"
+          );
+          const data = await response.json();
+          alert(
+            `Backend Status: ${data.status}\nTotal Streams: ${data.totalStreams}\nTotal Subscribers: ${data.totalSubscribers}`
+          );
+        } catch (error) {
+          alert(
+            "Backend is not reachable! Make sure it's running on http://localhost:8080"
+          );
+        }
+      }
+
+      // Auto-add first connection
+      window.onload = () => {
+        setTimeout(() => {
+          addConnection();
+        }, 500);
+      };
+    </script>
+  </body>
+</html>
