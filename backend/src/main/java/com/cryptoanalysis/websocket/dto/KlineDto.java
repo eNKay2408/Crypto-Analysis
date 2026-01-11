@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class KlineMessage {
+public class KlineDto {
     private String symbol;
     /**
      * Kline interval.
@@ -21,9 +21,11 @@ public class KlineMessage {
     private Long openTime;
     private Long closeTime;
     private BigDecimal open;
+    private BigDecimal close;
     private BigDecimal high;
     private BigDecimal low;
-    private BigDecimal close;
     private BigDecimal volume;
+    private BigDecimal quoteVolume;
+    private Integer tradesCount;
     private Boolean isClosed;
 }

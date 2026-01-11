@@ -7,6 +7,8 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "klines")
 @Data
@@ -16,13 +18,13 @@ public class Kline extends AbstractEntity {
     private String interval;
     private Long openTime;
     private Long closeTime;
-    private Double openPrice;
-    private Double highPrice;
-    private Double lowPrice;
-    private Double closePrice;
-    private Double volume;
-    private Double quoteVolume;
+    private BigDecimal openPrice;
+    private BigDecimal highPrice;
+    private BigDecimal lowPrice;
+    private BigDecimal closePrice;
+    private BigDecimal volume;
+    private BigDecimal quoteVolume;
     private Integer tradesCount;
-    private Double takerBuyBaseVolume;
-    private Double takerBuyQuoteVolume;
+    private BigDecimal takerBuyBaseVolume;
+    private BigDecimal takerBuyQuoteVolume;
 }
