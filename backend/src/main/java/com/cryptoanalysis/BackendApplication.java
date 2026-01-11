@@ -1,4 +1,4 @@
-package com.cryptoanalysis.backend;
+package com.cryptoanalysis;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
