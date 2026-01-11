@@ -37,6 +37,7 @@ CREATE TABLE klines (
     taker_buy_base_volume DECIMAL(20, 8),
     taker_buy_quote_volume DECIMAL(20, 8),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uk_klines_symbol_interval_time UNIQUE (symbol, interval, open_time)
 );
 
@@ -46,6 +47,7 @@ CREATE TABLE watchlist (
     symbol VARCHAR(20) NOT NULL,
     sort_order INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uk_watchlist_user_symbol UNIQUE (user_id, symbol)
 );
 

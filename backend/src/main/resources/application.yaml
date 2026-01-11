@@ -1,0 +1,50 @@
+# Server Configuration
+server:
+  port: 8080
+
+# Application Configuration
+spring:
+  application:
+    name: crypto-analysis
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:crypto_auth}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:admin123}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+    out-of-order: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.cryptoanalysis: DEBUG
+
+# Binance WebSocket Configuration
+binance:
+  websocket:
+    base-url: wss://stream.binance.com:9443/ws
+    reconnection-delay: 5000
+    max-reconnection-attempts: 10
+    ping-interval: 180000
