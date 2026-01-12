@@ -1,13 +1,17 @@
--- Create ENUM type for symbol status
-CREATE TYPE symbol_status AS ENUM (
-    'PRE_TRADING',
-    'TRADING',
-    'POST_TRADING',
-    'END_OF_DAY',
-    'HALT',
-    'AUCTION_MATCH',
-    'BREAK'
-);
+-- Create ENUM type for symbol status (if not exists)
+DO $$ BEGIN
+    CREATE TYPE symbol_status AS ENUM (
+        'PRE_TRADING',
+        'TRADING',
+        'POST_TRADING',
+        'END_OF_DAY',
+        'HALT',
+        'AUCTION_MATCH',
+        'BREAK'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE symbols (
     id BIGSERIAL PRIMARY KEY,
