@@ -7,7 +7,7 @@ spring:
   application:
     name: crypto-analysis
   datasource:
-    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:crypto_auth}
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:4040}/${POSTGRES_DB:crypto_auth}
     username: ${POSTGRES_USER:admin}
     password: ${POSTGRES_PASSWORD:admin123}
   jpa:

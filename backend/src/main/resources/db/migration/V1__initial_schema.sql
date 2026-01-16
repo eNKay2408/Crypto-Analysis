@@ -1,4 +1,4 @@
--- Create ENUM type for symbol status
+-- Create ENUM type for symbol status (if not exists)
 CREATE TYPE symbol_status AS ENUM (
     'PRE_TRADING',
     'TRADING',

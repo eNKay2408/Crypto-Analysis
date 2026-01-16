@@ -26,174 +26,37 @@ export const NewsAnalysisPage = () => {
   const fetchNewsAnalysis = async () => {
     setLoading(true);
     try {
-      // Simulate API delay for realistic loading
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // TODO: Replace with actual backend API endpoint when available
+      // Expected endpoint: GET /api/news?startDate={start}&endDate={end}&sentiment={sentiment}
+      const params = new URLSearchParams({
+        startDate: dateRange.start,
+        endDate: dateRange.end,
+      });
+      if (sentimentFilter !== "all") {
+        params.append("sentiment", sentimentFilter);
+      }
 
-      // Enhanced mock data with more variety
-      const mockNews: NewsItem[] = [
-        {
-          id: "1",
-          title: "Bitcoin ETF Approval Expected by Major Institutions",
-          content:
-            "Leading financial institutions including BlackRock and Fidelity predict Bitcoin ETF approval within the next few weeks, citing positive regulatory developments and increased institutional interest in cryptocurrency markets.",
-          source: "CryptoNews",
-          publishedAt: "2024-12-28T10:00:00Z",
-          sentiment: {
-            score: 0.85,
-            label: "positive",
-            confidence: 0.92,
-          },
-          priceImpact: {
-            before: 42000,
-            after: 44500,
-            change: 2500,
-            changePercent: 5.95,
-          },
-        },
-        {
-          id: "2",
-          title: "New Regulatory Framework Proposed for Crypto Trading",
-          content:
-            "European Union proposes comprehensive regulatory framework that could impact cryptocurrency trading across member states, raising concerns among market participants about compliance costs.",
-          source: "FinancialTimes",
-          publishedAt: "2024-12-28T14:30:00Z",
-          sentiment: {
-            score: -0.65,
-            label: "negative",
-            confidence: 0.88,
-          },
-          priceImpact: {
-            before: 44500,
-            after: 43200,
-            change: -1300,
-            changePercent: -2.92,
-          },
-        },
-        {
-          id: "3",
-          title: "Major Exchange Confirms Security Incident",
-          content:
-            "One of the world's largest cryptocurrency exchanges confirms a security breach affecting user accounts, prompting immediate security audits across the industry.",
-          source: "CryptoAlert",
-          publishedAt: "2024-12-28T18:00:00Z",
-          sentiment: {
-            score: -0.92,
-            label: "negative",
-            confidence: 0.95,
-          },
-          priceImpact: {
-            before: 43200,
-            after: 41000,
-            change: -2200,
-            changePercent: -5.09,
-          },
-        },
-        {
-          id: "4",
-          title: "Institutional Adoption Reaches New Milestone",
-          content:
-            "Fortune 500 companies continue to add Bitcoin to their treasury reserves, with three major corporations announcing significant purchases this week.",
-          source: "Bloomberg",
-          publishedAt: "2024-12-27T09:15:00Z",
-          sentiment: {
-            score: 0.78,
-            label: "positive",
-            confidence: 0.89,
-          },
-          priceImpact: {
-            before: 41500,
-            after: 42800,
-            change: 1300,
-            changePercent: 3.13,
-          },
-        },
-        {
-          id: "5",
-          title: "Market Analysis: Bitcoin Consolidation Phase",
-          content:
-            "Technical analysts suggest Bitcoin is entering a healthy consolidation phase after recent gains, with support levels holding strong.",
-          source: "CoinDesk",
-          publishedAt: "2024-12-27T16:45:00Z",
-          sentiment: {
-            score: 0.15,
-            label: "neutral",
-            confidence: 0.76,
-          },
-          priceImpact: {
-            before: 42800,
-            after: 42600,
-            change: -200,
-            changePercent: -0.47,
-          },
-        },
-        {
-          id: "6",
-          title: "DeFi Protocol Launches Revolutionary Yield Strategy",
-          content:
-            "New decentralized finance protocol introduces innovative yield farming strategy, attracting over $500M in total value locked within 24 hours.",
-          source: "DeFiPulse",
-          publishedAt: "2024-12-26T11:30:00Z",
-          sentiment: {
-            score: 0.72,
-            label: "positive",
-            confidence: 0.85,
-          },
-          priceImpact: {
-            before: 41200,
-            after: 41800,
-            change: 600,
-            changePercent: 1.46,
-          },
-        },
-      ];
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/news?${params.toString()}`
+      );
 
-      const mockCausalEvents: CausalEvent[] = [
-        {
-          date: "2024-12-28",
-          news: mockNews.slice(0, 1),
-          priceChange: 2500,
-          priceChangePercent: 5.95,
-          trend: "up",
-          primaryReason:
-            "Strong positive sentiment from institutional ETF approval expectations drove significant buying pressure, with major financial institutions expressing confidence in regulatory approval timeline.",
-          confidence: 0.92,
-        },
-        {
-          date: "2024-12-28",
-          news: mockNews.slice(1, 3),
-          priceChange: -3500,
-          priceChangePercent: -7.87,
-          trend: "down",
-          primaryReason:
-            "Combined negative impact from regulatory uncertainty and security breach concerns triggered widespread sell-off, overwhelming earlier positive momentum.",
-          confidence: 0.91,
-        },
-        {
-          date: "2024-12-27",
-          news: mockNews.slice(3, 5),
-          priceChange: 1100,
-          priceChangePercent: 2.65,
-          trend: "up",
-          primaryReason:
-            "Institutional adoption milestone outweighed neutral consolidation sentiment, demonstrating strong underlying demand from corporate treasuries.",
-          confidence: 0.87,
-        },
-        {
-          date: "2024-12-26",
-          news: mockNews.slice(5, 6),
-          priceChange: 600,
-          priceChangePercent: 1.46,
-          trend: "up",
-          primaryReason:
-            "DeFi innovation and capital inflow created positive spillover effects across the broader crypto market.",
-          confidence: 0.85,
-        },
-      ];
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
 
-      setNewsData(mockNews);
-      setCausalEvents(mockCausalEvents);
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setNewsData(result.data.news || []);
+        setCausalEvents(result.data.causalEvents || []);
+      } else {
+        throw new Error('Invalid API response format');
+      }
     } catch (error) {
       console.error("Failed to fetch news analysis:", error);
+      // Set empty data on error (backend API not available)
+      setNewsData([]);
+      setCausalEvents([]);
     } finally {
       setLoading(false);
     }
