@@ -5,13 +5,13 @@ Tài liệu dùng để theo dõi tiến độ Dev, Testing và tích hợp gi�
 ## Sprint 1: Core Foundation & Static Data
 *Mục tiêu: Chart hiện thị được (tĩnh), Crawler chạy được (cấu hình cứng).*
 
-| ID     | Feature           | Screen (UI Tóm tắt)                  | API / Backend Logic (Tóm tắt)                                                        | Owner    | Status                                           |
-| :----- | :---------------- | :----------------------------------- | :----------------------------------------------------------------------------------- | :------- | :----------------------------------------------- |
-| **F1** | **Auth System**   | Login, Register Form                 | `POST /auth/login`, `POST /auth/register` (JWT)                                      | Mem 1, 4 | 🟡 50% (FE UI done, BE API missing)               |
-| **F2** | **Static Chart**  | Dashboard hiển thị nến BTCUSDT       | `GET /api/candles?symbol=BTCUSDT&limit=1000` (Proxy gọi sang Binance lấy history)    | Mem 1, 2 | 🟡 70% (Chart component done, API missing)        |
-| **F3** | **Basic Crawler** | (Chạy ngầm - Cronjob)                | Scheduler 1p/lần. Hardcode CSS Selector cho 1 trang (VD: Coindesk). Lưu vào MongoDB. | Mem 3    | ✅ DONE (CoinDesk + VietStock crawlers)           |
-| **F4** | **News List**     | List tin tức dạng thẻ bên cạnh Chart | `GET /api/news?page=1&limit=10`                                                      | Mem 1, 2 | 🟡 60% (FE NewsAnalysisPage done, BE API missing) |
-| **F5** | **Source Config** | (API Only - Chưa cần UI)             | `POST /api/sources` (Thêm URL cần crawl vào DB)                                      | Mem 1    | ⬜ TODO                                           |
+| ID     | Feature           | Screen (UI Tóm tắt)                  | API / Backend Logic (Tóm tắt)                                                        | Owner    | Status                                         |
+| :----- | :---------------- | :----------------------------------- | :----------------------------------------------------------------------------------- | :------- | :--------------------------------------------- |
+| **F1** | **Auth System**   | Login, Register Form                 | `POST /auth/login`, `POST /auth/register` (JWT)                                      | Mem 1, 4 | ✅ DONE (JWT + Spring Security + Frontend Auth) |
+| **F2** | **Static Chart**  | Dashboard hiển thị nến BTCUSDT       | `GET /api/candles?symbol=BTCUSDT&limit=1000` (Proxy gọi sang Binance lấy history)    | Mem 1, 2 | ✅ DONE (Chart + Binance proxy + Redis cache)   |
+| **F3** | **Basic Crawler** | (Chạy ngầm - Cronjob)                | Scheduler 1p/lần. Hardcode CSS Selector cho 1 trang (VD: Coindesk). Lưu vào MongoDB. | Mem 3    | ✅ DONE (CoinDesk + VietStock crawlers)         |
+| **F4** | **News List**     | List tin tức dạng thẻ bên cạnh Chart | `GET /api/news?page=1&limit=10`                                                      | Mem 1, 2 | ✅ DONE (News API + MongoDB + Frontend)         |
+| **F5** | **Source Config** | (API Only - Chưa cần UI)             | `POST /api/sources` (Thêm URL cần crawl vào DB)                                      | Mem 1    | ⬜ TODO (Future enhancement)                    |
 
 ## Sprint 2: Real-time & Basic AI
 *Mục tiêu: Websocket chạy mượt, AI phân tích được Sentiment.*
@@ -26,8 +26,8 @@ Tài liệu dùng để theo dõi tiến độ Dev, Testing và tích hợp gi�
 ## Sprint 3: Advanced (Scale & Smart Crawler)
 *Mục tiêu: Ăn điểm 2+1 (Advanced).*
 
-| ID      | Feature                  | Screen (UI Tóm tắt)                | API / Backend Logic (Tóm tắt)                                                               | Owner    | Status                                     |
-| :------ | :----------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------ | :------- | :----------------------------------------- |
-| **F10** | **AI Structure Learner** | (Backend/AI Logic)                 | Input: URL mới -> AI detect title/content xpath -> Save Template -> Crawl.                  | Mem 3    | ⬜ TODO                                     |
-| **F11** | **Causal Analysis**      | Popup giải thích khi hover tin tức | API: `GET /api/analysis/{news_id}`. Trả về text giải thích "Tại sao tin này làm giá tăng?". | Mem 3, 1 | 🟡 30% (FE CausalAnalysis component ready)  |
-| **F12** | **System Scale**         | (DevOps/Arch)                      | Tách Docker Containers. Setup Load Balancer (Nginx), Redis Caching cho API History.         | Mem 1, 4 | 🟡 40% (Redis deps, Docker compose partial) |
+| ID      | Feature                  | Screen (UI Tóm tắt)                | API / Backend Logic (Tóm tắt)                                                               | Owner    | Status                                                      |
+| :------ | :----------------------- | :--------------------------------- | :------------------------------------------------------------------------------------------ | :------- | :---------------------------------------------------------- |
+| **F10** | **AI Structure Learner** | (Backend/AI Logic)                 | Input: URL mới -> AI detect title/content xpath -> Save Template -> Crawl.                  | Mem 3    | ✅ DONE (Gemini API + MongoDB templates + validation)        |
+| **F11** | **Causal Analysis**      | Popup giải thích khi hover tin tức | API: `GET /api/analysis/{news_id}`. Trả về text giải thích "Tại sao tin này làm giá tăng?". | Mem 3, 1 | ✅ DONE (Backend LLM service + Frontend modal UI)            |
+| **F12** | **System Scale**         | (DevOps/Arch)                      | Tách Docker Containers. Setup Load Balancer (Nginx), Redis Caching cho API History.         | Mem 1, 4 | 🟡 60% (Redis caching done, Docker compose done, Nginx TODO) |

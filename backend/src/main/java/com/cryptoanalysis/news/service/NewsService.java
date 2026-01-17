@@ -63,7 +63,7 @@ public class NewsService {
           .message("News fetched successfully")
           .data(NewsResponseDTO.NewsDataDTO.builder()
               .news(newsArticles)
-              .causalEvents(new ArrayList<>()) // TODO: Implement causal analysis
+              .causalEvents(new ArrayList<>()) // Use /api/analysis/{newsId} for causal analysis
               .build())
           .pagination(NewsResponseDTO.PaginationDTO.builder()
               .page(page)

@@ -73,4 +73,25 @@ public class NewsArticle {
     private Double change;
     private Double changePercent;
   }
+
+  // Convenience getters for backward compatibility
+  public LocalDateTime getPublishedDate() {
+    return publishedAt;
+  }
+
+  public String getSource() {
+    return sourceId;
+  }
+
+  public String getContentBody() {
+    return content;
+  }
+
+  public Double getSentimentScore() {
+    return sentiment != null ? sentiment.getScore() : null;
+  }
+
+  public String getSentimentLabel() {
+    return sentiment != null ? sentiment.getLabel() : null;
+  }
 }
