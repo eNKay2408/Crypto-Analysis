@@ -29,6 +29,9 @@ export const API_ENDPOINTS = {
 	// Candles (Historical data)
 	CANDLES: "/api/candles",
 
+	// Causal Analysis
+	ANALYSIS: "/api/analysis",
+
 	// WebSocket Monitoring
 	WS_SUBSCRIPTIONS: "/api/websocket/subscriptions",
 	WS_HEALTH: "/api/websocket/health",

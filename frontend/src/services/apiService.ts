@@ -341,6 +341,25 @@ class ApiService {
 		return this.request(`${API_ENDPOINTS.CANDLES}?${queryParams.toString()}`);
 	}
 
+	// ==================== Causal Analysis APIs ====================
+
+	/**
+	 * Get causal analysis for a news article
+	 */
+	async getAnalysis(newsId: string): Promise<ApiResponse<any>> {
+		return this.request(`${API_ENDPOINTS.ANALYSIS}/${newsId}`);
+	}
+
+	/**
+	 * Batch analyze multiple news articles
+	 */
+	async batchAnalyze(newsIds: string[]): Promise<ApiResponse<any[]>> {
+		return this.request(`${API_ENDPOINTS.ANALYSIS}/batch`, {
+			method: "POST",
+			body: JSON.stringify(newsIds),
+		});
+	}
+
 	// ==================== Watchlist APIs (TODO: Backend implementation) ====================
 
 	/**
