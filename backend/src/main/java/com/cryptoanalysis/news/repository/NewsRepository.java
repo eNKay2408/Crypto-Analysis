@@ -40,12 +40,6 @@ public interface NewsRepository extends MongoRepository<NewsArticle, String> {
   List<NewsArticle> findBySourceId(String sourceId);
 
   /**
-   * Count articles by sentiment label
-   */
-  @Query(value = "{ 'sentiment.label': ?0 }", count = true)
-  long countBySentimentLabel(String sentimentLabel);
-
-  /**
    * Find articles by sentiment label with pagination
    */
   @Query("{ 'sentiment.label': ?0 }")

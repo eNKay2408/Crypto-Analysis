@@ -58,14 +58,4 @@ public class NewsController {
 
     return ResponseEntity.ok(response);
   }
-
-  @GetMapping("/statistics")
-  @Operation(summary = "Get news statistics", description = "Get aggregated statistics about news sentiment")
-  public ResponseEntity<NewsResponseDTO.NewsDataDTO> getStatistics() {
-    log.info("GET /api/news/statistics");
-
-    NewsResponseDTO.NewsDataDTO stats = newsService.getNewsStatistics();
-
-    return ResponseEntity.ok(stats);
-  }
 }

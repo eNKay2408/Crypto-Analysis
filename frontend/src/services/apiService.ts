@@ -323,13 +323,6 @@ class ApiService {
 		return this.request(`${API_ENDPOINTS.NEWS}?${queryParams.toString()}`);
 	}
 
-	/**
-	 * Get news statistics
-	 */
-	async getNewsStatistics(): Promise<ApiResponse<any>> {
-		return this.request(API_ENDPOINTS.NEWS_STATISTICS);
-	}
-
 	// ==================== Candles APIs ====================
 
 	/**

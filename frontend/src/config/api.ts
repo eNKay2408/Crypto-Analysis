@@ -25,7 +25,6 @@ export const API_ENDPOINTS = {
 
 	// News
 	NEWS: "/api/news",
-	NEWS_STATISTICS: "/api/news/statistics",
 
 	// Candles (Historical data)
 	CANDLES: "/api/candles",

@@ -11,7 +11,6 @@ Phase 2 hoàn thành việc tích hợp frontend React với backend Spring Boot
   - `register()` - POST /auth/register
   - `login()` - POST /auth/login
   - `getNews()` - GET /api/news (with pagination & filters)
-  - `getNewsStatistics()` - GET /api/news/statistics
   - `getCandles()` - GET /api/candles (proxy to Binance)
   - JWT token injection vào Authorization header tự động
 
