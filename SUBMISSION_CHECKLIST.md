@@ -6,10 +6,10 @@
 
 ## ✅ Core Requirements (8/10 points)
 
-### 1. Crawler - Thu thập tin tức ✅
-- [x] Scheduler chạy định kỳ (APScheduler - 60s interval)
-- [x] Crawl từ nhiều nguồn (CoinDesk, VietStock)
-- [x] Lưu MongoDB với đầy đủ thông tin (title, content, date, url, source)
+### 1. Crawler - Thu thập tin tức
+- [] Scheduler chạy định kỳ (APScheduler - 60s interval)
+- [] Crawl từ nhiều nguồn (CoinDesk, VietStock)
+- [] Lưu MongoDB với đầy đủ thông tin (title, content, date, url, source)
 - [x] Structure Learner: **AI-based** (Gemini LLM) - tự động học HTML structure
 - [x] Fallback: Hardcoded selectors nếu AI không available
 
@@ -30,11 +30,11 @@
 - Backend: `backend/src/main/java/com/cryptoanalysis/websocket/`
 - Frontend: `frontend/src/components/tradingview/TradingViewStaticChart.tsx`
 
-### 3. AI Sentiment Analysis ✅
-- [x] Model: FinBERT (financial sentiment analysis)
-- [x] Pipeline: MongoDB ChangeStream → AI Worker → Update sentiment_score
-- [x] Named Entity Recognition (NER) for entities extraction
-- [x] Lưu vào TimescaleDB cho time-series analysis
+### 3. AI Sentiment Analysis
+- [] Model: FinBERT (financial sentiment analysis)
+- [] Pipeline: MongoDB ChangeStream → AI Worker → Update sentiment_score
+- [] Named Entity Recognition (NER) for entities extraction
+- [] Lưu vào TimescaleDB cho time-series analysis
 
 **Files**: `ai_engine/ai_worker/`
 - `sentiment_analysis/SentimentAnalysisWorker.py` - FinBERT model
@@ -58,7 +58,7 @@
 
 ### AI Features ✅
 - [x] **AI Structure Learner**: Gemini LLM tự động học CSS selectors
-- [x] **Causal Analysis**: Predict market impact UP/DOWN/NEUTRAL
+- [] **Causal Analysis**: Predict market impact UP/DOWN/NEUTRAL
 - [x] **Confidence Scoring**: 0.0 - 1.0 accuracy estimation
 - [x] **Reasoning**: Giải thích WHY tin tức ảnh hưởng giá
 

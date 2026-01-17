@@ -86,11 +86,12 @@ npm run dev
 # Open new terminal
 cd ai_engine
 
-# Copy .env and fill in missing values
-cp .env.example .env
-
 # Install dependencies
 pip install -r requirements.txt
+
+# Copy .env and fill in missing values
+cp ai_worker/.env.example ai_worker/.env
+cp crawler/.env.example crawler/.env
 
 # Start AI worker (processes new articles)
 python -m ai_worker.messaging.ArticleChangeStreamConsumer
@@ -99,44 +100,6 @@ python -m ai_worker.messaging.ArticleChangeStreamConsumer
 python -m crawler.scheduler.CrawlScheduler
 ```
 
----
-
-## 🔧 Configuration
-
-### Backend Configuration
-Edit `backend/src/main/resources/application.yaml`:
-
-```yaml
-# Database connections (default values work with Docker Compose)
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/crypto_auth
-    username: admin
-    password: admin123
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: crypto_news
-      username: admin
-      password: admin123
-
-# Optional: Gemini API for AI features
-ai:
-  gemini:
-    api-key: ${GEMINI_API_KEY:}  # Set via environment variable
-```
-
-### AI Engine Configuration
-Edit `.env` files in `ai_engine/ai_worker/` and `ai_engine/crawler/`:
-
-```bash
-MONGODB_URI=mongodb://admin:admin123@localhost:27017/crypto_news?authSource=admin
-MONGODB_DB_NAME=crypto_news
-
-# Optional: For AI Structure Learner and enhanced features
-GEMINI_API_KEY=your_gemini_api_key_here
-```
 ---
 
 ## 🧪 Integration Testing
