@@ -71,3 +71,9 @@ binance:
 jwt:
   secret: ${JWT_SECRET:YourSuperSecretKeyForJWTTokenGenerationPleaseChangeInProduction123456789}
   expiration: 86400000 # 24 hours in milliseconds
+
+# AI Configuration
+ai:
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
