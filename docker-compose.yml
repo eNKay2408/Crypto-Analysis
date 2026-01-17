@@ -1,5 +1,5 @@
 services:
-  # 1. PostgreSQL (For Users, Auth)
+  # 1. PostgreSQL (For Users, Auth, Watchlist, Klines)
   postgres:
     image: postgres:15-alpine
     container_name: crypto_postgres
@@ -18,19 +18,17 @@ services:
     image: adminer
     restart: always
     ports:
-      - "8080:8080"
-  # Truy cập: localhost:8080
-  # System: PostgreSQL
+      - "8082:8080"
   # Server: crypto_postgres
 
-  # 2. MongoDB (For News, Logs)
+  # 2. MongoDB (For News, Logs) - Standalone mode for local dev
   mongo:
-    image: mongo:6.0
+    image: mongo:7.0
     container_name: crypto_mongo
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-root123}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-admin123}
     ports:
       - "27017:27017"
     volumes:
@@ -43,25 +41,45 @@ services:
     ports:
       - "8081:8081"
     environment:
-      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_USER:-root}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_PASSWORD:-root123}
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER:-root}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-root123}
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_USER:-admin}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_PASSWORD:-admin123}
+      ME_CONFIG_BASICAUTH: false
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER:-admin}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASSWORD:-admin123}
       ME_CONFIG_MONGODB_SERVER: mongo
       ME_CONFIG_MONGODB_PORT: 27017
       ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
-
     depends_on:
       - mongo
 
-  # 3. Redis (For Caching & Simple Queue)
+  # 3. Redis (For Caching Candles Data)
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: crypto_redis
     restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # 4. TimescaleDB (For AI Sentiment Time-Series Data)
+  timescaledb:
+    image: timescale/timescaledb:latest-pg15
+    container_name: crypto_timescaledb
+    restart: always
+    environment:
+      POSTGRES_DB: ${TIMESCALE_DB:-crypto_timescale}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
+    ports:
+      - "5433:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./ai_engine/ai_worker/timescaledb_sentiment_analysis.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
 volumes:
   postgres_data:
   mongo_data:
+  redis_data:
+  timescale_data:

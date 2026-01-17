@@ -9,6 +9,21 @@ CREATE TYPE symbol_status AS ENUM (
     'BREAK'
 );
 
+-- Users table for authentication
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    role VARCHAR(20) NOT NULL DEFAULT 'USER',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index for faster email lookups
+CREATE INDEX idx_users_email ON users (email);
+
 CREATE TABLE symbols (
     id BIGSERIAL PRIMARY KEY,
     symbol VARCHAR(20) UNIQUE NOT NULL,

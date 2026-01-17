@@ -7,12 +7,16 @@ spring:
   application:
     name: crypto-analysis
   datasource:
-    url: jdbc:postgresql://localhost:${POSTGRES_PORT:4040}/${POSTGRES_DB:crypto_auth}
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:crypto_auth}
     username: ${POSTGRES_USER:admin}
     password: ${POSTGRES_PASSWORD:admin123}
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -20,10 +24,22 @@ spring:
     baseline-version: 0
     validate-on-migrate: true
     out-of-order: false
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+  data:
+    mongodb:
+      host: ${MONGODB_HOST:localhost}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE:crypto_news}
+      username: ${MONGO_USER:admin}
+      password: ${MONGO_PASSWORD:admin123}
+      authentication-database: admin
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 60000ms
+  cache:
+    type: redis
+    redis:
+      time-to-live: 60000
 
 # Actuator Configuration
 management:
@@ -48,3 +64,10 @@ binance:
     reconnection-delay: 5000
     max-reconnection-attempts: 10
     ping-interval: 180000
+  api:
+    base-url: https://api.binance.com
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:YourSuperSecretKeyForJWTTokenGenerationPleaseChangeInProduction123456789}
+  expiration: 86400000 # 24 hours in milliseconds
