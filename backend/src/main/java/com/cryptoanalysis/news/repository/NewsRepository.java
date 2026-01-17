@@ -46,6 +46,12 @@ public interface NewsRepository extends MongoRepository<NewsArticle, String> {
   long countBySentimentLabel(String sentimentLabel);
 
   /**
+   * Find articles by sentiment label with pagination
+   */
+  @Query("{ 'sentiment.label': ?0 }")
+  Page<NewsArticle> findBySentimentLabel(String sentimentLabel, Pageable pageable);
+
+  /**
    * Find articles that haven't been analyzed yet
    */
   @Query("{ 'isAnalyzed': { $ne: true } }")

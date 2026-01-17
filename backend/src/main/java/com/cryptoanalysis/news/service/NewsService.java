@@ -121,9 +121,24 @@ public class NewsService {
 
     log.info("News statistics: Positive={}, Negative={}, Neutral={}", positive, negative, neutral);
 
+    // Return actual sample news for each category instead of empty
+    List<NewsArticleDTO> sampleNews = new ArrayList<>();
+
+    // Get top 3 most recent positive news
+    List<NewsArticle> recentPositive = newsRepository
+        .findBySentimentLabel("positive", PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "publishedAt")))
+        .getContent();
+    sampleNews.addAll(recentPositive.stream().map(this::convertToDTO).toList());
+
+    // Get top 3 most recent negative news
+    List<NewsArticle> recentNegative = newsRepository
+        .findBySentimentLabel("negative", PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "publishedAt")))
+        .getContent();
+    sampleNews.addAll(recentNegative.stream().map(this::convertToDTO).toList());
+
     return NewsResponseDTO.NewsDataDTO.builder()
-        .news(new ArrayList<>())
-        .causalEvents(new ArrayList<>())
+        .news(sampleNews)
+        .causalEvents(new ArrayList<>()) // Will be implemented in Phase 3
         .build();
   }
 }
