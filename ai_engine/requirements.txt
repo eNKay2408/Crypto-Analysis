@@ -5,6 +5,6 @@ transformers
 pandas
 apscheduler
 pymongo
-dotenv
-pymongo
+python-dotenv
 psycopg2
+google-genai
