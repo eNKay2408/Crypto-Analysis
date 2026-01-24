@@ -1,4 +1,18 @@
 import { useMemo } from "react";
+import {
+	ComposedChart,
+	Bar,
+	Line,
+	Area,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	Legend,
+	ResponsiveContainer,
+	ReferenceLine,
+	Cell,
+} from "recharts";
 import type { NewsItem } from "../../types/news";
 
 interface SentimentChartProps {
@@ -70,6 +84,20 @@ export const SentimentChart = ({ newsData }: SentimentChartProps) => {
 		chartData.length > 0
 			? Math.max(...chartData.map((d) => Math.abs(d.avgSentiment)), 1)
 			: 1;
+
+	const rechartsData = useMemo(() => {
+		return chartData.map((d) => ({
+			date: new Date(d.date).toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+			}),
+			fullDate: d.date,
+			sentiment: d.avgSentiment * 100,
+			price: d.avgPrice,
+			count: d.count,
+			avgSentiment: d.avgSentiment,
+		}));
+	}, [chartData]);
 
 	return (
 		<div className="space-y-6">
@@ -303,84 +331,112 @@ export const SentimentChart = ({ newsData }: SentimentChartProps) => {
 					</div>
 				) : (
 					<div className="space-y-6">
-						{/* Chart */}
-						<div className="relative flex h-56 items-center gap-1.5">
-							{/* Zero line */}
-							<div className="pointer-events-none absolute left-0 right-0 top-1/2 h-px bg-slate-600"></div>
-							<div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-slate-600">
-								0
-							</div>
-
-							{/* Y-axis labels */}
-							<div className="pointer-events-none absolute left-0 top-2 text-[10px] text-emerald-500">
-								+{(maxSentiment * 100).toFixed(0)}
-							</div>
-							<div className="pointer-events-none absolute bottom-2 left-0 text-[10px] text-rose-500">
-								-{(maxSentiment * 100).toFixed(0)}
-							</div>
-
-							{/* Bars */}
-							{chartData.map((data, index) => {
-								const height = Math.abs(data.avgSentiment) / maxSentiment;
-								const isPositive = data.avgSentiment >= 0;
-
-								return (
-									<div
-										key={index}
-										className="group relative flex flex-1 flex-col items-center"
+						{/* Chart using Recharts */}
+						<div className="h-80 w-full">
+							<ResponsiveContainer width="100%" height="100%">
+								<ComposedChart
+									data={rechartsData}
+									margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+								>
+									<defs>
+										<linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="1">
+											<stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+											<stop offset="95%" stopColor="#10b981" stopOpacity={0.1} />
+										</linearGradient>
+										<linearGradient id="colorNegative" x1="0" y1="0" x2="0" y2="1">
+											<stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+											<stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+										</linearGradient>
+									</defs>
+									<CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+									<XAxis
+										dataKey="date"
+										stroke="#64748b"
+										style={{ fontSize: "12px" }}
+										tick={{ fill: "#64748b" }}
+									/>
+									<YAxis
+										yAxisId="sentiment"
+										stroke="#64748b"
+										style={{ fontSize: "12px" }}
+										tick={{ fill: "#64748b" }}
+										label={{
+											value: "Sentiment (%)",
+											angle: -90,
+											position: "insideLeft",
+											style: { textAnchor: "middle", fill: "#94a3b8" },
+										}}
+									/>
+									<YAxis
+										yAxisId="price"
+										orientation="right"
+										stroke="#64748b"
+										style={{ fontSize: "12px" }}
+										tick={{ fill: "#64748b" }}
+										label={{
+											value: "Price (USDT)",
+											angle: 90,
+											position: "insideRight",
+											style: { textAnchor: "middle", fill: "#94a3b8" },
+										}}
+									/>
+									<Tooltip
+										contentStyle={{
+											backgroundColor: "#1e293b",
+											border: "1px solid #334155",
+											borderRadius: "8px",
+											color: "#e2e8f0",
+										}}
+										labelStyle={{ color: "#94a3b8" }}
+										formatter={(value: any, name: string) => {
+											if (name === "sentiment") {
+												return [`${value > 0 ? "+" : ""}${value.toFixed(1)}%`, "Sentiment"];
+											}
+											if (name === "price") {
+												return [`$${value.toFixed(2)}`, "Price"];
+											}
+											return [value, name];
+										}}
+									/>
+									<Legend
+										wrapperStyle={{ color: "#94a3b8" }}
+										iconType="line"
+									/>
+									<ReferenceLine
+										yAxisId="sentiment"
+										y={0}
+										stroke="#64748b"
+										strokeDasharray="2 2"
+									/>
+									<Bar
+										yAxisId="sentiment"
+										dataKey="sentiment"
+										radius={[4, 4, 0, 0]}
+										name="Sentiment"
 									>
-										{/* Bar */}
-										<div
-											className={[
-												"w-full rounded-sm transition-all group-hover:opacity-80",
-												isPositive
-													? "bg-gradient-to-t from-emerald-500 to-emerald-400"
-													: "bg-gradient-to-b from-rose-500 to-rose-400",
-											].join(" ")}
-											style={{
-												height: `${height * 48}%`,
-												marginTop: isPositive ? "auto" : "0",
-												marginBottom: isPositive ? "0" : "auto",
-												minHeight: "2px",
-											}}
-										></div>
-
-										{/* Enhanced Tooltip */}
-										<div className="pointer-events-none absolute -top-24 z-10 hidden rounded-lg border border-slate-700 bg-slate-900 p-3 shadow-2xl group-hover:block">
-											<div className="whitespace-nowrap text-xs font-medium text-slate-300">
-												{new Date(data.date).toLocaleDateString("en-US", {
-													month: "short",
-													day: "numeric",
-													year: "numeric",
-												})}
-											</div>
-											<div
-												className={[
-													"mt-1.5 text-lg font-bold",
-													isPositive ? "text-emerald-400" : "text-rose-400",
-												].join(" ")}
-											>
-												{data.avgSentiment > 0 ? "+" : ""}
-												{(data.avgSentiment * 100).toFixed(1)}
-											</div>
-											<div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
-												<svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-												</svg>
-												{data.count} articles
-											</div>
-										</div>
-
-										{/* Date label */}
-										<div className="mt-2 text-[9px] text-slate-600">
-											{new Date(data.date).toLocaleDateString("en-US", {
-												month: "numeric",
-												day: "numeric",
-											})}
-										</div>
-									</div>
-								);
-							})}
+										{rechartsData.map((entry, index) => (
+											<Cell
+												key={`cell-${index}`}
+												fill={
+													entry.avgSentiment >= 0
+														? "#10b981"
+														: "#ef4444"
+												}
+											/>
+										))}
+									</Bar>
+									<Line
+										yAxisId="price"
+										type="monotone"
+										dataKey="price"
+										stroke="#3b82f6"
+										strokeWidth={2}
+										dot={{ fill: "#3b82f6", r: 4 }}
+										activeDot={{ r: 6 }}
+										name="Price"
+									/>
+								</ComposedChart>
+							</ResponsiveContainer>
 						</div>
 
 						{/* Legend */}
@@ -392,6 +448,10 @@ export const SentimentChart = ({ newsData }: SentimentChartProps) => {
 							<div className="flex items-center gap-2">
 								<div className="h-3 w-3 rounded bg-rose-500"></div>
 								<span className="text-xs text-slate-400">Negative Sentiment</span>
+							</div>
+							<div className="flex items-center gap-2">
+								<div className="h-3 w-3 rounded bg-blue-500"></div>
+								<span className="text-xs text-slate-400">Price Trend</span>
 							</div>
 						</div>
 					</div>
