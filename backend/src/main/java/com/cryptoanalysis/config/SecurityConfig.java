@@ -48,6 +48,9 @@ public class SecurityConfig {
             .requestMatchers(
                 "/auth/**",
                 "/api/candles/**",
+                "/api/market/**",
+                "/api/exchange/**",
+                "/api/admin/candles/**",
                 "/api/news/**",
                 "/api/websocket/**",
                 "/ws/**",
@@ -56,6 +59,8 @@ public class SecurityConfig {
                 "/swagger-ui.html",
                 "/actuator/**")
             .permitAll()
+            // Other admin endpoints require authentication
+            .requestMatchers("/api/admin/**").authenticated()
             // All other requests require authentication
             .anyRequest().authenticated())
         .sessionManagement(session -> session
