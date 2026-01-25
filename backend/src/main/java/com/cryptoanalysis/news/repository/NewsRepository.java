@@ -17,13 +17,13 @@ public interface NewsRepository extends MongoRepository<NewsArticle, String> {
   /**
    * Find news articles by published date range with pagination
    */
-  Page<NewsArticle> findByPublishedAtBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+  Page<NewsArticle> findByPublishedDateBetween(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
 
   /**
    * Find news articles by sentiment label and date range
    */
-  @Query("{ 'sentiment.label': ?0, 'publishedAt': { $gte: ?1, $lte: ?2 } }")
-  Page<NewsArticle> findBySentimentLabelAndPublishedAtBetween(
+  @Query("{ 'sentiment_label': ?0, 'published_date': { $gte: ?1, $lte: ?2 } }")
+  Page<NewsArticle> findBySentimentLabelAndPublishedDateBetween(
       String sentimentLabel,
       LocalDateTime startDate,
       LocalDateTime endDate,
@@ -32,17 +32,16 @@ public interface NewsRepository extends MongoRepository<NewsArticle, String> {
   /**
    * Find all news articles ordered by published date
    */
-  Page<NewsArticle> findAllByOrderByPublishedAtDesc(Pageable pageable);
+  Page<NewsArticle> findAllByOrderByPublishedDateDesc(Pageable pageable);
 
   /**
-   * Find news articles by source ID
+   * Find news articles by source
    */
-  List<NewsArticle> findBySourceId(String sourceId);
+  List<NewsArticle> findBySource(String source);
 
   /**
    * Find articles by sentiment label with pagination
    */
-  @Query("{ 'sentiment.label': ?0 }")
   Page<NewsArticle> findBySentimentLabel(String sentimentLabel, Pageable pageable);
 
   /**
