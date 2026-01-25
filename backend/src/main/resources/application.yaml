@@ -74,6 +74,35 @@ jwt:
 
 # AI Configuration
 ai:
+  engine:
+    base-url: ${AI_ENGINE_URL:http://localhost:5001}
   gemini:
     api-key: ${GEMINI_API_KEY:}
     api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+
+# Candle Ingestion Configuration
+candle:
+  ingestion:
+    enabled: true
+    symbols:
+      - BTCUSDT
+      - ETHUSDT
+      - BNBUSDT
+      - SOLUSDT
+      - ADAUSDT
+    intervals:
+      - 1m
+      - 5m
+      - 15m
+      - 1h
+      - 4h
+      - 1d
+    minute-schedule: "0 * * * * *" # Every minute
+    hour-schedule: "0 0 * * * *" # Every hour
+    daily-schedule: "0 0 2 * * *" # 2 AM daily
+    backfill-days: 90
+    batch-size: 1000
+    rate-limit-delay-ms: 200
+  retention:
+    enabled: true
+    days: 365 # Keep 1 year of data
