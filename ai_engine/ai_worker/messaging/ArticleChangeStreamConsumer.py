@@ -63,7 +63,7 @@ class ArticleChangeStreamConsumer:
                 "sentiment_score": float(sentiment_score),
                 "sentiment_label": label,
                 "analyzed_at": datetime.datetime.now(),
-                "weight": 0.0,
+                "weight": 1.0,
                 "confident_score": float(sentiment_score)
             }
             # Save
