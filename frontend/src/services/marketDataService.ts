@@ -53,7 +53,7 @@ const transformTickerData = (backendTicker: BackendTicker): MarketStats => {
 export const fetchCandlestickData = async (
 	symbol: string,
 	interval: string,
-	limit: number = 100,
+	limit: number = 1000,
 ): Promise<CandlestickData[]> => {
 	try {
 		// Call the new Candles API
