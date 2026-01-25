@@ -9,7 +9,7 @@ export const IndicatorPanel = () => {
   const mainIndicators = indicators.filter((ind) => ind.category === "main");
   const subIndicators = indicators.filter((ind) => ind.category === "sub");
 
-  return (
+    return (
     <>
       {/* Selector Button - Always visible */}
       <button
@@ -22,27 +22,27 @@ export const IndicatorPanel = () => {
 
       {/* Overlay and Modal - Only show when open */}
       {isOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 z-40 bg-black/50"
-            onClick={() => setIsOpen(false)}
-          />
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 z-40 bg-black/50"
+        onClick={() => setIsOpen(false)}
+      />
 
-          {/* Modal */}
+      {/* Modal */}
           <div className="fixed left-1/2 top-1/2 z-50 w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-slate-700 bg-slate-800 shadow-2xl">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-700 p-4">
-              <h3 className="text-base font-semibold text-slate-100">Indicator</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
-              >
-                ✕
-              </button>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-700 p-4">
+          <h3 className="text-base font-semibold text-slate-100">Indicator</h3>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
+          >
+            ✕
+          </button>
+        </div>
 
-            {/* Content */}
+        {/* Content */}
             <div className="max-h-96 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-500">
           {/* Main Indicators */}
           <div className="mb-4">

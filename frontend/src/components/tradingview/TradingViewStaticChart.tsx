@@ -31,6 +31,8 @@ import {
 interface ChartProps {
   symbol?: string;
   interval?: string;
+  candleInterval?: string;
+  limit?: number;
 }
 
 export interface ChartRef {
@@ -40,6 +42,8 @@ export interface ChartRef {
 export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
   symbol = "BTC/USDT",
   interval = "1h",
+  candleInterval,
+  limit,
 }, ref) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartWrapperRef = useRef<HTMLDivElement>(null);
@@ -47,6 +51,7 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
   const candlestickSeriesRef = useRef<ISeriesApi<any> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<any> | null>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+  const candleDataRef = useRef<Array<{ time: number; open: number; high: number; low: number; close: number }>>([]);
   const drawingRef = useRef<{
     isDrawing: boolean;
     startPoint: { x: number; y: number; time?: number; price?: number } | null;
@@ -76,12 +81,24 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
   const loadChartData = async () => {
     setLoading(true);
     try {
+      const actualInterval = candleInterval || interval;
+      const actualLimit = limit || 100;
+      
       const [candleData, marketStats] = await Promise.all([
-        fetchCandlestickData(symbol, interval, 100),
+        fetchCandlestickData(symbol, actualInterval, actualLimit),
         fetchMarketStats(symbol),
       ]);
 
       if (candlestickSeriesRef.current && volumeSeriesRef.current) {
+        // Store candle data for clamping
+        candleDataRef.current = candleData.map((d) => ({
+          time: d.time,
+          open: d.open,
+          high: d.high,
+          low: d.low,
+          close: d.close,
+        }));
+
         // Update candlestick data
         candlestickSeriesRef.current.setData(
           candleData.map((d) => ({
@@ -121,7 +138,9 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
     const activeIndicators = getActiveIndicators("main");
     
     // Fetch candle data for calculations
-    const candleData = await fetchCandlestickData(symbol, interval, 200);
+    const actualInterval = candleInterval || interval;
+    const actualLimit = limit || 200;
+    const candleData = await fetchCandlestickData(symbol, actualInterval, actualLimit);
     const closePrices = candleData.map((d) => d.close);
     const times = candleData.map((d) => d.time as UTCTimestamp);
 
@@ -276,7 +295,7 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
         setIndicatorValues(newValues);
       });
     }
-  }, [symbol, interval, getActiveIndicators]);
+  }, [symbol, interval, candleInterval, limit, getActiveIndicators]);
 
   // Toggle indicator visibility
   const toggleIndicatorVisibility = useCallback((indicatorId: string) => {
@@ -335,9 +354,23 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
         timeVisible: true,
         secondsVisible: false,
         borderColor: "#334155",
+        fixLeftEdge: true,
+        fixRightEdge: true,
       },
       rightPriceScale: {
         borderColor: "#334155",
+      },
+      localization: {
+        locale: "vi-VN",
+        dateFormat: "dd/MM/yyyy",
+        timeFormatter: (time: number) => {
+          const date = new Date(time * 1000);
+          return new Intl.DateTimeFormat("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZone: "Asia/Bangkok",
+          }).format(date);
+        },
       },
       crosshair: {
         mode: 1,
@@ -425,7 +458,7 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
         renderIndicators();
       });
     }
-  }, [interval, symbol]);
+  }, [interval, symbol, candleInterval, limit]);
 
   // Re-render indicators when they change
   useEffect(() => {
@@ -434,40 +467,103 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
     }
   }, [renderIndicators]);
 
-  // Convert mouse coordinates to chart coordinates
-  const getChartCoordinates = useCallback(
-    (x: number, y: number): { time: number; price: number } | null => {
+  // Clamp coordinates to chart bounds and candle data range
+  const clampChartCoordinates = useCallback(
+    (x: number, y: number): { x: number; y: number; time: number; price: number } | null => {
       if (!chartRef.current || !chartContainerRef.current || !candlestickSeriesRef.current) {
-        console.log("❌ getChartCoordinates - missing refs:", {
-          chartRef: !!chartRef.current,
-          containerRef: !!chartContainerRef.current,
-          seriesRef: !!candlestickSeriesRef.current,
-        });
         return null;
       }
 
       const rect = chartContainerRef.current.getBoundingClientRect();
-      const chartX = x - rect.left;
-      const chartY = y - rect.top;
-
       const timeScale = chartRef.current.timeScale();
-      const time = timeScale.coordinateToTime(chartX);
+
+      // Get candle data range
+      const candles = candleDataRef.current;
+      if (candles.length === 0) {
+        return null;
+      }
+
+      // Calculate min/max time from candle data
+      const minTime = Math.min(...candles.map(c => c.time));
+      const maxTime = Math.max(...candles.map(c => c.time));
+      
+      // Calculate min/max price from candle data (use low/high)
+      const minPrice = Math.min(...candles.map(c => c.low));
+      const maxPrice = Math.max(...candles.map(c => c.high));
+
+      // Get coordinate bounds for time range
+      const minTimeCoord = timeScale.timeToCoordinate(minTime as UTCTimestamp);
+      const maxTimeCoord = timeScale.timeToCoordinate(maxTime as UTCTimestamp);
+      
+      if (minTimeCoord === null || maxTimeCoord === null) {
+        return null;
+      }
+
+      // Get coordinate bounds for price range
+      const minPriceCoord = candlestickSeriesRef.current.priceToCoordinate(minPrice);
+      const maxPriceCoord = candlestickSeriesRef.current.priceToCoordinate(maxPrice);
+      
+      if (minPriceCoord === null || maxPriceCoord === null) {
+        return null;
+      }
+
+      // Clamp mouse position to chart bounds first
+      const rawChartX = x - rect.left;
+      const rawChartY = y - rect.top;
+      
+      // Clamp X coordinate to time range (candle data bounds) - STRICT
+      // This prevents dragging outside the first/last candle
+      const clampedX = Math.max(minTimeCoord, Math.min(maxTimeCoord, rawChartX));
+      
+      // Clamp Y coordinate to price range (candle data bounds) - STRICT
+      // In canvas, Y increases downward, so minPrice is at maxY
+      const clampedY = Math.max(maxPriceCoord, Math.min(minPriceCoord, rawChartY));
+
+      // Convert clamped coordinates to time and price
+      let time = timeScale.coordinateToTime(clampedX);
       if (time === null) {
-        console.log("❌ getChartCoordinates - time is null, chartX:", chartX);
-        return null;
+        // Fallback: use min/max time based on position
+        time = clampedX <= minTimeCoord ? minTime : maxTime;
       }
 
-      // Use series API for coordinate to price conversion (lightweight-charts v5)
-      const price = candlestickSeriesRef.current.coordinateToPrice(chartY);
+      let price = candlestickSeriesRef.current.coordinateToPrice(clampedY);
       if (price === null) {
-        console.log("❌ getChartCoordinates - price is null, chartY:", chartY);
+        // Fallback: use min/max price based on position
+        price = clampedY >= maxPriceCoord ? minPrice : maxPrice;
+      }
+
+      // Final strict clamp to ensure time and price are within bounds
+      const finalTime = Math.max(minTime, Math.min(maxTime, time as number));
+      const finalPrice = Math.max(minPrice, Math.min(maxPrice, price));
+
+      // Convert back to coordinates using clamped time/price
+      const finalX = timeScale.timeToCoordinate(finalTime as UTCTimestamp);
+      const finalY = candlestickSeriesRef.current.priceToCoordinate(finalPrice);
+      
+      if (finalX === null || finalY === null) {
         return null;
       }
 
-      console.log("✅ getChartCoordinates:", { time, price, chartX, chartY });
-      return { time: time as number, price };
+      return { 
+        x: finalX, 
+        y: finalY, 
+        time: finalTime, 
+        price: finalPrice
+      };
     },
     []
+  );
+
+  // Convert mouse coordinates to chart coordinates
+  const getChartCoordinates = useCallback(
+    (x: number, y: number): { time: number; price: number } | null => {
+      const clamped = clampChartCoordinates(x, y);
+      if (!clamped) {
+        return null;
+      }
+      return { time: clamped.time, price: clamped.price };
+    },
+    [clampChartCoordinates]
   );
 
   // Draw on canvas overlay
@@ -791,26 +887,20 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
         return;
       }
 
-      const coords = getChartCoordinates(e.clientX, e.clientY);
-      console.log("📍 MouseDown coords:", coords);
-      if (!coords) {
+      const clamped = clampChartCoordinates(e.clientX, e.clientY);
+      console.log("📍 MouseDown coords:", clamped);
+      if (!clamped) {
         console.log("❌ No coordinates found");
-        return;
-      }
-
-      const rect = chartContainerRef.current?.getBoundingClientRect();
-      if (!rect) {
-        console.log("❌ No rect found");
         return;
       }
 
       drawingRef.current = {
         isDrawing: true,
         startPoint: {
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-          time: coords.time,
-          price: coords.price,
+          x: clamped.x,
+          y: clamped.y,
+          time: clamped.time,
+          price: clamped.price,
         },
         currentPoints: [],
       };
@@ -820,7 +910,7 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
         startPoint: drawingRef.current.startPoint,
       });
     },
-    [activeTool, getChartCoordinates, drawings, removeDrawing]
+    [activeTool, clampChartCoordinates, drawings, removeDrawing]
   );
 
   const handleMouseMove = useCallback(
@@ -840,31 +930,25 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(({
         return;
       }
 
-      const coords = getChartCoordinates(e.clientX, e.clientY);
-      if (!coords) {
+      const clamped = clampChartCoordinates(e.clientX, e.clientY);
+      if (!clamped) {
         console.log("❌ MouseMove - no coords");
-        return;
-      }
-
-      const rect = chartContainerRef.current?.getBoundingClientRect();
-      if (!rect) {
-        console.log("❌ MouseMove - no rect");
         return;
       }
 
       drawingRef.current.currentPoints = [
         {
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-          time: coords.time,
-          price: coords.price,
+          x: clamped.x,
+          y: clamped.y,
+          time: clamped.time,
+          price: clamped.price,
         },
       ];
 
       console.log("✅ MouseMove - currentPoint:", drawingRef.current.currentPoints[0]);
       renderDrawings();
     },
-    [activeTool, getChartCoordinates, renderDrawings]
+    [activeTool, clampChartCoordinates, renderDrawings]
   );
 
   const handleMouseUp = useCallback(() => {

@@ -95,64 +95,64 @@ export const CoinSelector = ({ selectedCoin, onCoinChange }: CoinSelectorProps) 
 					</button>
 				</div>
 
-				{/* Search Input */}
+					{/* Search Input */}
 				<div className="border-b border-slate-700 p-4">
-					<input
-						type="text"
-						placeholder="Search cryptocurrency..."
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						className="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-						autoFocus
-					/>
-				</div>
+						<input
+							type="text"
+							placeholder="Search cryptocurrency..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+							autoFocus
+						/>
+					</div>
 
-				{/* Coin List */}
+					{/* Coin List */}
 				<div className="max-h-96 overflow-y-auto p-4 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:bg-slate-600 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-500">
-					{filteredCoins.length > 0 ? (
+						{filteredCoins.length > 0 ? (
 						<div className="space-y-1">
-							{filteredCoins.map((coin) => (
-								<button
-									key={coin.symbol}
-									onClick={() => {
-										onCoinChange(coin.symbol);
-										setIsOpen(false);
-										setSearchQuery("");
-									}}
-									className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-all ${
-										selectedCoin === coin.symbol
-											? "bg-sky-600 text-white"
+								{filteredCoins.map((coin) => (
+									<button
+										key={coin.symbol}
+										onClick={() => {
+											onCoinChange(coin.symbol);
+											setIsOpen(false);
+											setSearchQuery("");
+										}}
+										className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-all ${
+											selectedCoin === coin.symbol
+												? "bg-sky-600 text-white"
 											: "text-slate-200 hover:bg-slate-700/50"
-									}`}
-									type="button"
-								>
-									<div className="flex-1">
+										}`}
+										type="button"
+									>
+										<div className="flex-1">
 										<div className="font-semibold text-sm">{coin.symbol}</div>
 										<div className={`text-xs ${selectedCoin === coin.symbol ? "text-sky-100" : "text-slate-400"}`}>
 											{coin.name}
 										</div>
-									</div>
-									{selectedCoin === coin.symbol && (
-										<svg
-											className="h-5 w-5"
-											fill="currentColor"
-											viewBox="0 0 20 20"
-										>
-											<path
-												fillRule="evenodd"
-												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-												clipRule="evenodd"
-											/>
-										</svg>
-									)}
-								</button>
-							))}
-						</div>
-					) : (
+										</div>
+										{selectedCoin === coin.symbol && (
+											<svg
+												className="h-5 w-5"
+												fill="currentColor"
+												viewBox="0 0 20 20"
+											>
+												<path
+													fillRule="evenodd"
+													d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+													clipRule="evenodd"
+												/>
+											</svg>
+										)}
+									</button>
+								))}
+							</div>
+						) : (
 						<div className="p-8 text-center text-sm text-slate-400">
-							No cryptocurrencies found
-						</div>
-					)}
+								No cryptocurrencies found
+							</div>
+						)}
 					</div>
 				</div>
 				</>

@@ -6,20 +6,50 @@ import { IndicatorPanel } from "../components/indicators/IndicatorPanel";
 
 export const DashboardPage = () => {
   const [selectedCoin, setSelectedCoin] = useState<string>("BTC/USDT");
-  const [selectedInterval, setSelectedInterval] = useState<string>("1h");
+  const [selectedInterval, setSelectedInterval] = useState<string>("3th");
   const chartRef = useRef<ChartRef>(null);
 
+  // View period -> Candle interval mapping
   const intervals = [
-    { label: "1m", value: "1m" },
-    { label: "5m", value: "5m" },
-    { label: "15m", value: "15m" },
-    { label: "1H", value: "1h" },
-    { label: "2H", value: "2h" },
-    { label: "4H", value: "4h" },
-    { label: "D", value: "1d" },
-    { label: "W", value: "1w" },
-    { label: "M", value: "1M" },
+    { label: "1d", value: "1d", candleInterval: "1m" },   // 1 day view, 1 minute candles
+    { label: "5d", value: "5d", candleInterval: "5m" },   // 5 days view, 5 minute candles
+    { label: "1th", value: "1th", candleInterval: "30m" }, // 1 month view, 30 minute candles
+    { label: "3th", value: "3th", candleInterval: "1h" }, // 3 months view, 1 hour candles
+    { label: "6th", value: "6th", candleInterval: "2h" }, // 6 months view, 2 hour candles
+    { label: "1y", value: "1y", candleInterval: "1d" },   // 1 year view, 1 day candles
+    { label: "5y", value: "5y", candleInterval: "1w" },   // 5 years view, 1 week candles
   ];
+
+  // Calculate limit based on view period and candle interval
+  const calculateLimit = (viewPeriod: string, candleInterval: string): number => {
+    const intervalMinutes: Record<string, number> = {
+      "1m": 1,
+      "5m": 5,
+      "30m": 30,
+      "1h": 60,
+      "2h": 120,
+      "1d": 1440, // 24 * 60
+      "1w": 10080, // 7 * 24 * 60
+    };
+
+    const periodDays: Record<string, number> = {
+      "1d": 1,
+      "5d": 5,
+      "1th": 30,
+      "3th": 90,
+      "6th": 180,
+      "1y": 365,
+      "5y": 1825, // 5 * 365
+    };
+
+    const candleMinutes = intervalMinutes[candleInterval] || 60;
+    const days = periodDays[viewPeriod] || 1;
+    const totalMinutes = days * 24 * 60;
+    const limit = Math.ceil(totalMinutes / candleMinutes);
+    
+    // Add some buffer and cap at reasonable limits
+    return Math.min(Math.max(limit, 100), 5000);
+  };
 
   return (
     <div className="flex h-full flex-col bg-slate-950 p-6">
@@ -68,7 +98,13 @@ export const DashboardPage = () => {
 
       {/* Chart Section */}
       <div className="flex-1 overflow-auto">
-        <TradingViewStaticChart ref={chartRef} symbol={selectedCoin} interval={selectedInterval} />
+        <TradingViewStaticChart 
+          ref={chartRef} 
+          symbol={selectedCoin} 
+          interval={selectedInterval}
+          candleInterval={intervals.find(i => i.value === selectedInterval)?.candleInterval || "1h"}
+          limit={calculateLimit(selectedInterval, intervals.find(i => i.value === selectedInterval)?.candleInterval || "1h")}
+        />
       </div>
     </div>
   );
