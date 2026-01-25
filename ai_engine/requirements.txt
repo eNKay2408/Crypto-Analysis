@@ -6,7 +6,8 @@ pandas
 apscheduler
 pymongo
 python-dotenv
-psycopg2
 google-generativeai
 flask
 flask-cors
+psycopg2-binary
+google-genai

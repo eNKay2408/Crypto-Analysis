@@ -51,3 +51,26 @@ SELECT add_continuous_aggregate_policy (
   end_offset => INTERVAL '0 minutes',
   schedule_interval => INTERVAL '10 minutes'
 );
+
+
+
+--
+--9. View tính điểm trung bình có trọng số theo từng giờ
+CREATE MATERIALIZED VIEW sentiment_hourly_metrics
+WITH (timescaledb.continuous) AS
+SELECT
+  time_bucket(INTERVAL '1 hour', analyzed_at) AS bucket,
+  target_entity,
+  -- Công thức: Tổng (Điểm * Trọng số) / Tổng trọng số
+  SUM(sentiment_score * weight) / NULLIF(SUM(weight), 0) AS weighted_avg_sentiment,
+  COUNT(*) AS article_count,
+  SUM(weight) AS total_weight
+FROM sentiment_analysis
+GROUP BY 1, 2
+WITH NO DATA;
+
+--10. Chính sách tự động cập nhật (mỗi 10 phút cập nhật dữ liệu của 24h qua)
+SELECT add_continuous_aggregate_policy('sentiment_hourly_metrics',
+  start_offset => INTERVAL '24 hours',
+  end_offset => INTERVAL '0 minutes',
+  schedule_interval => INTERVAL '10 minutes');
