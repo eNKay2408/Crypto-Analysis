@@ -7,4 +7,6 @@ apscheduler
 pymongo
 python-dotenv
 psycopg2
-google-genai
+google-generativeai
+flask
+flask-cors
