@@ -74,6 +74,8 @@ jwt:
 
 # AI Configuration
 ai:
+  engine:
+    base-url: ${AI_ENGINE_URL:http://localhost:5001}
   gemini:
     api-key: ${GEMINI_API_KEY:}
     api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
