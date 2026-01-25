@@ -25,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.cryptoanalysis.auth.security.JwtAuthenticationFilter;
 import com.cryptoanalysis.auth.service.AuthService;
 
+// Security configuration
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -52,12 +53,14 @@ public class SecurityConfig {
                 "/api/exchange/**",
                 "/api/admin/candles/**",
                 "/api/news/**",
+                "/api/analysis/**",
                 "/api/websocket/**",
                 "/ws/**",
                 "/v3/api-docs/**",
                 "/swagger-ui/**",
                 "/swagger-ui.html",
-                "/actuator/**")
+                "/actuator/**",
+                "/error")
             .permitAll()
             // Other admin endpoints require authentication
             .requestMatchers("/api/admin/**").authenticated()

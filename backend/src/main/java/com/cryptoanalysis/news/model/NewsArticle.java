@@ -12,7 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "news_articles")
+@Document(collection = "news")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,8 +22,7 @@ public class NewsArticle {
   @Id
   private String id;
 
-  @Field("sourceId")
-  private String sourceId;
+  private String source;
 
   private String title;
 
@@ -31,28 +30,21 @@ public class NewsArticle {
 
   private String content;
 
-  @Field("publishedAt")
-  private LocalDateTime publishedAt;
+  @Field("published_date")
+  private LocalDateTime publishedDate;
 
-  private Sentiment sentiment;
+  @Field("sentiment_score")
+  private Double sentimentScore;
+
+  @Field("sentiment_label")
+  private String sentimentLabel;
 
   private List<String> keywords;
 
   private List<Entity> entities;
 
-  private PriceImpact priceImpact;
-
-  @Field("crawledAt")
-  private LocalDateTime crawledAt;
-
-  @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @Builder
-  public static class Sentiment {
-    private Double score;
-    private String label;
-  }
+  @Field("created_at")
+  private LocalDateTime createdAt;
 
   @Data
   @NoArgsConstructor
@@ -60,38 +52,6 @@ public class NewsArticle {
   @Builder
   public static class Entity {
     private String text;
-    private String type;
-  }
-
-  @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  @Builder
-  public static class PriceImpact {
-    private Double before;
-    private Double after;
-    private Double change;
-    private Double changePercent;
-  }
-
-  // Convenience getters for backward compatibility
-  public LocalDateTime getPublishedDate() {
-    return publishedAt;
-  }
-
-  public String getSource() {
-    return sourceId;
-  }
-
-  public String getContentBody() {
-    return content;
-  }
-
-  public Double getSentimentScore() {
-    return sentiment != null ? sentiment.getScore() : null;
-  }
-
-  public String getSentimentLabel() {
-    return sentiment != null ? sentiment.getLabel() : null;
+    private String label;
   }
 }

@@ -32,6 +32,9 @@ public class CausalAnalysisDTO {
   @JsonProperty("key_factors")
   private List<String> keyFactors;
 
+  @JsonProperty("time_horizon")
+  private String timeHorizon; // "short-term", "medium-term", "long-term"
+
   @JsonProperty("related_entities")
   private List<String> relatedEntities;
 

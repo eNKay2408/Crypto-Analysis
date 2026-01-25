@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.cryptoanalysis.news.model.NewsArticle;
 import com.cryptoanalysis.news.repository.NewsRepository;
@@ -39,6 +40,9 @@ public class CausalAnalysisService {
   private final RestTemplate restTemplate;
   private final ObjectMapper objectMapper;
 
+  @Value("${ai.engine.base-url:http://localhost:5001}")
+  private String aiEngineBaseUrl;
+
   @Value("${ai.gemini.api-key:}")
   private String geminiApiKey;
 
@@ -51,25 +55,105 @@ public class CausalAnalysisService {
     // Fetch news article
     Optional<NewsArticle> articleOpt = newsRepository.findById(newsId);
     if (articleOpt.isEmpty()) {
-      throw new RuntimeException("News article not found: " + newsId);
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "News article not found: " + newsId);
     }
 
     NewsArticle article = articleOpt.get();
 
-    // Build prompt for LLM
-    String prompt = buildAnalysisPrompt(article);
-
-    // Call Gemini API
-    String llmResponse = callGeminiAPI(prompt);
-
-    // Parse response
-    return parseLLMResponse(newsId, article, llmResponse);
+    try {
+      // Call Python AI Engine API
+      return callAIEngineAPI(article);
+    } catch (ResponseStatusException e) {
+      // Re-throw HTTP exceptions (like 404 Not Found)
+      throw e;
+    } catch (Exception e) {
+      log.error("Error calling AI Engine API, using fallback: {}", e.getMessage());
+      return createFallbackDTO(newsId, article);
+    }
   }
 
   public List<CausalAnalysisDTO> batchAnalyze(List<String> newsIds) {
     return newsIds.stream()
         .map(this::analyzeNewsImpact)
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Call Python AI Engine API for causal analysis
+   */
+  private CausalAnalysisDTO callAIEngineAPI(NewsArticle article) {
+    try {
+      String apiUrl = aiEngineBaseUrl + "/api/causal-analysis/analyze";
+
+      // Build request payload
+      Map<String, Object> payload = new HashMap<>();
+      payload.put("news_id", article.getId());
+      payload.put("title", article.getTitle());
+      payload.put("content", truncateContent(article.getContent(), 1000));
+      payload.put("published_date", article.getPublishedDate().toString());
+      payload.put("source", article.getSource());
+      payload.put("sentiment_score", article.getSentimentScore());
+      payload.put("sentiment_label", article.getSentimentLabel());
+      payload.put("keywords", article.getKeywords() != null ? article.getKeywords() : List.of());
+
+      // Set headers
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_JSON);
+
+      HttpEntity<Map<String, Object>> request = new HttpEntity<>(payload, headers);
+
+      log.info("Calling AI Engine API at: {}", apiUrl);
+
+      // Call API
+      ResponseEntity<String> response = restTemplate.exchange(
+          apiUrl,
+          HttpMethod.POST,
+          request,
+          String.class);
+
+      if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+        JsonNode json = objectMapper.readTree(response.getBody());
+
+        CausalAnalysisDTO dto = new CausalAnalysisDTO();
+        dto.setNewsId(article.getId());
+        dto.setAnalysis(json.get("analysis").asText());
+        dto.setPredictedTrend(json.get("predicted_trend").asText());
+        dto.setConfidence(json.get("confidence").asDouble());
+
+        // Parse key factors
+        List<String> keyFactors = new ArrayList<>();
+        if (json.has("key_factors") && json.get("key_factors").isArray()) {
+          json.get("key_factors").forEach(node -> keyFactors.add(node.asText()));
+        }
+        dto.setKeyFactors(keyFactors);
+
+        // Parse related entities
+        List<String> relatedEntities = new ArrayList<>();
+        if (json.has("related_entities") && json.get("related_entities").isArray()) {
+          json.get("related_entities").forEach(node -> relatedEntities.add(node.asText()));
+        }
+        dto.setRelatedEntities(relatedEntities);
+
+        // Set time horizon
+        if (json.has("time_horizon")) {
+          dto.setTimeHorizon(json.get("time_horizon").asText());
+        }
+
+        dto.setAnalyzedAt(LocalDateTime.now());
+        dto.setSentimentScore(json.get("sentiment_score").asDouble());
+        dto.setSentimentLabel(json.get("sentiment_label").asText());
+
+        log.info("Successfully received analysis from AI Engine");
+        return dto;
+      }
+
+      log.error("AI Engine API returned non-OK status: {}", response.getStatusCode());
+      throw new RuntimeException("AI Engine API error: " + response.getStatusCode());
+
+    } catch (Exception e) {
+      log.error("Error calling AI Engine API: {}", e.getMessage(), e);
+      throw new RuntimeException("Failed to call AI Engine API", e);
+    }
   }
 
   private String buildAnalysisPrompt(NewsArticle article) {
@@ -242,6 +326,7 @@ public class CausalAnalysisService {
     dto.setPredictedTrend(trend);
     dto.setConfidence(0.5);
     dto.setKeyFactors(List.of("Sentiment: " + article.getSentimentLabel()));
+    dto.setTimeHorizon("short-term");
     dto.setRelatedEntities(article.getKeywords());
     dto.setAnalyzedAt(LocalDateTime.now());
     dto.setSentimentScore(article.getSentimentScore());

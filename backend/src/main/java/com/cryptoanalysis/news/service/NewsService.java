@@ -37,19 +37,19 @@ public class NewsService {
       String sentiment) {
     try {
       // Create pageable object with sorting
-      Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "publishedAt"));
+      Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "publishedDate"));
 
       // Fetch news from MongoDB
       Page<NewsArticle> newsPage;
 
       if (sentiment != null && !sentiment.equalsIgnoreCase("all")) {
-        newsPage = newsRepository.findBySentimentLabelAndPublishedAtBetween(
+        newsPage = newsRepository.findBySentimentLabelAndPublishedDateBetween(
             sentiment,
             startDate,
             endDate,
             pageable);
       } else {
-        newsPage = newsRepository.findByPublishedAtBetween(startDate, endDate, pageable);
+        newsPage = newsRepository.findByPublishedDateBetween(startDate, endDate, pageable);
       }
 
       // Convert to DTOs
@@ -86,28 +86,20 @@ public class NewsService {
    * Convert NewsArticle entity to DTO
    */
   private NewsArticleDTO convertToDTO(NewsArticle article) {
-    NewsArticle.Sentiment sentiment = article.getSentiment();
-    NewsArticle.PriceImpact priceImpact = article.getPriceImpact();
-
     return NewsArticleDTO.builder()
         .id(article.getId())
-        .sourceId(article.getSourceId())
+        .sourceId(article.getSource())
         .title(article.getTitle())
         .url(article.getUrl())
         .content(article.getContent())
-        .publishedAt(article.getPublishedAt())
-        .sentiment(sentiment != null ? NewsArticleDTO.SentimentDTO.builder()
-            .score(sentiment.getScore())
-            .label(sentiment.getLabel())
-            .build() : null)
+        .publishedAt(article.getPublishedDate())
+        .sentiment(NewsArticleDTO.SentimentDTO.builder()
+            .score(article.getSentimentScore())
+            .label(article.getSentimentLabel())
+            .build())
         .keywords(article.getKeywords())
-        .priceImpact(priceImpact != null ? NewsArticleDTO.PriceImpactDTO.builder()
-            .before(priceImpact.getBefore())
-            .after(priceImpact.getAfter())
-            .change(priceImpact.getChange())
-            .changePercent(priceImpact.getChangePercent())
-            .build() : null)
-        .crawledAt(article.getCrawledAt())
+        .priceImpact(null)
+        .crawledAt(article.getCreatedAt())
         .build();
   }
 }
