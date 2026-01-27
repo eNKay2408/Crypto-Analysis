@@ -54,6 +54,7 @@ public class SecurityConfig {
                 "/api/admin/candles/**",
                 "/api/news/**",
                 "/api/analysis/**",
+                "/api/sentiment/**",
                 "/api/websocket/**",
                 "/ws/**",
                 "/v3/api-docs/**",

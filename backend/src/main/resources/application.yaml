@@ -79,6 +79,8 @@ ai:
   gemini:
     api-key: ${GEMINI_API_KEY:}
     api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
+  signal:
+    base-url: ${AI_SIGNAL_URL:http://localhost:8000}
 
 # Candle Ingestion Configuration
 candle:
