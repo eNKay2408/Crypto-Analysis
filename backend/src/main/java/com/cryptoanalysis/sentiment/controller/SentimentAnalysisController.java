@@ -32,81 +32,89 @@ import lombok.extern.slf4j.Slf4j;
 @CrossOrigin(origins = "*")
 public class SentimentAnalysisController {
 
-  private final SentimentAnalysisService sentimentAnalysisService;
+    private final SentimentAnalysisService sentimentAnalysisService;
 
-  @GetMapping("/trends")
-  @Operation(summary = "Get sentiment trends over time", description = "Fetch sentiment trends aggregated by day from TimescaleDB")
-  public ResponseEntity<ApiResponse<List<SentimentTrendDTO>>> getSentimentTrends(
-      @Parameter(description = "Start date (ISO format: 2026-01-20T00:00:00)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-      @Parameter(description = "End date (ISO format: 2026-01-28T23:59:59)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+    @GetMapping("/trends")
+    @Operation(summary = "Get sentiment trends over time", description = "Fetch sentiment trends aggregated by day from TimescaleDB")
+    public ResponseEntity<ApiResponse<List<SentimentTrendDTO>>> getSentimentTrends(
+            @Parameter(description = "Start date (ISO format: 2026-01-20T00:00:00)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @Parameter(description = "End date (ISO format: 2026-01-28T23:59:59)") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @Parameter(description = "Target entity to filter (e.g., BTC, ETH). Optional.") @RequestParam(required = false) String entity) {
 
-    log.info("GET /api/sentiment-analysis/trends - startDate={}, endDate={}", startDate, endDate);
+        log.info("GET /api/sentiment-analysis/trends - startDate={}, endDate={}, entity={}", startDate, endDate,
+                entity);
 
-    List<SentimentTrendDTO> trends = sentimentAnalysisService.getSentimentTrends(startDate, endDate);
+        List<SentimentTrendDTO> trends = sentimentAnalysisService.getSentimentTrends(startDate, endDate, entity);
 
-    return ResponseEntity.ok(ApiResponse.<List<SentimentTrendDTO>>builder()
-        .success(true)
-        .data(trends)
-        .message("Sentiment trends retrieved successfully")
-        .build());
-  }
+        return ResponseEntity.ok(ApiResponse.<List<SentimentTrendDTO>>builder()
+                .success(true)
+                .data(trends)
+                .message("Sentiment trends retrieved successfully")
+                .build());
+    }
 
-  @GetMapping("/distribution")
-  @Operation(summary = "Get sentiment distribution", description = "Get count of positive, neutral, negative sentiments")
-  public ResponseEntity<ApiResponse<Map<String, Long>>> getSentimentDistribution(
-      @Parameter(description = "Start date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-      @Parameter(description = "End date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+    @GetMapping("/distribution")
+    @Operation(summary = "Get sentiment distribution", description = "Get count of positive, neutral, negative sentiments")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getSentimentDistribution(
+            @Parameter(description = "Start date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @Parameter(description = "End date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @Parameter(description = "Target entity to filter (e.g., BTC, ETH). Optional.") @RequestParam(required = false) String entity) {
 
-    log.info("GET /api/sentiment-analysis/distribution - startDate={}, endDate={}", startDate, endDate);
+        log.info("GET /api/sentiment-analysis/distribution - startDate={}, endDate={}, entity={}", startDate, endDate,
+                entity);
 
-    Map<String, Long> distribution = sentimentAnalysisService.getSentimentDistribution(startDate, endDate);
+        Map<String, Long> distribution = sentimentAnalysisService.getSentimentDistribution(startDate, endDate, entity);
 
-    return ResponseEntity.ok(ApiResponse.<Map<String, Long>>builder()
-        .success(true)
-        .data(distribution)
-        .message("Sentiment distribution retrieved successfully")
-        .build());
-  }
+        return ResponseEntity.ok(ApiResponse.<Map<String, Long>>builder()
+                .success(true)
+                .data(distribution)
+                .message("Sentiment distribution retrieved successfully")
+                .build());
+    }
 
-  @GetMapping("/by-entity")
-  @Operation(summary = "Get sentiment data by entity", description = "Fetch all sentiment data for a specific cryptocurrency")
-  public ResponseEntity<ApiResponse<List<SentimentAnalysis>>> getSentimentByEntity(
-      @Parameter(description = "Target entity (e.g., BTC, ETH)") @RequestParam String entity,
-      @Parameter(description = "Start date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-      @Parameter(description = "End date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+    @GetMapping("/by-entity")
+    @Operation(summary = "Get sentiment data by entity", description = "Fetch all sentiment data for a specific cryptocurrency")
+    public ResponseEntity<ApiResponse<List<SentimentAnalysis>>> getSentimentByEntity(
+            @Parameter(description = "Target entity (e.g., BTC, ETH)") @RequestParam String entity,
+            @Parameter(description = "Start date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @Parameter(description = "End date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
 
-    log.info("GET /api/sentiment-analysis/by-entity - entity={}, startDate={}, endDate={}", entity, startDate, endDate);
+        log.info("GET /api/sentiment-analysis/by-entity - entity={}, startDate={}, endDate={}", entity, startDate,
+                endDate);
 
-    List<SentimentAnalysis> sentiments = sentimentAnalysisService.getSentimentByEntity(entity.toUpperCase(), startDate,
-        endDate);
+        List<SentimentAnalysis> sentiments = sentimentAnalysisService.getSentimentByEntity(entity.toUpperCase(),
+                startDate,
+                endDate);
 
-    return ResponseEntity.ok(ApiResponse.<List<SentimentAnalysis>>builder()
-        .success(true)
-        .data(sentiments)
-        .message("Sentiment data retrieved successfully")
-        .build());
-  }
+        return ResponseEntity.ok(ApiResponse.<List<SentimentAnalysis>>builder()
+                .success(true)
+                .data(sentiments)
+                .message("Sentiment data retrieved successfully")
+                .build());
+    }
 
-  @GetMapping("/summary")
-  @Operation(summary = "Get complete sentiment summary", description = "Get trends, distribution, and entity breakdown in one call")
-  public ResponseEntity<ApiResponse<Map<String, Object>>> getSentimentSummary(
-      @Parameter(description = "Start date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-      @Parameter(description = "End date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+    @GetMapping("/summary")
+    @Operation(summary = "Get complete sentiment summary", description = "Get trends, distribution, and entity breakdown in one call")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSentimentSummary(
+            @Parameter(description = "Start date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @Parameter(description = "End date") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @Parameter(description = "Target entity to filter (e.g., BTC, ETH). Optional.") @RequestParam(required = false) String entity) {
 
-    log.info("GET /api/sentiment-analysis/summary - startDate={}, endDate={}", startDate, endDate);
+        log.info("GET /api/sentiment-analysis/summary - startDate={}, endDate={}, entity={}", startDate, endDate,
+                entity);
 
-    List<SentimentTrendDTO> trends = sentimentAnalysisService.getSentimentTrends(startDate, endDate);
-    Map<String, Long> distribution = sentimentAnalysisService.getSentimentDistribution(startDate, endDate);
+        List<SentimentTrendDTO> trends = sentimentAnalysisService.getSentimentTrends(startDate, endDate, entity);
+        Map<String, Long> distribution = sentimentAnalysisService.getSentimentDistribution(startDate, endDate, entity);
 
-    Map<String, Object> summary = new HashMap<>();
-    summary.put("trends", trends);
-    summary.put("distribution", distribution);
-    summary.put("totalRecords", trends.stream().mapToLong(SentimentTrendDTO::getCount).sum());
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("trends", trends);
+        summary.put("distribution", distribution);
+        summary.put("totalRecords", trends.stream().mapToLong(SentimentTrendDTO::getCount).sum());
 
-    return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
-        .success(true)
-        .data(summary)
-        .message("Sentiment summary retrieved successfully")
-        .build());
-  }
+        return ResponseEntity.ok(ApiResponse.<Map<String, Object>>builder()
+                .success(true)
+                .data(summary)
+                .message("Sentiment summary retrieved successfully")
+                .build());
+    }
 }

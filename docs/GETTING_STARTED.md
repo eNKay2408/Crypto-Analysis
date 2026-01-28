@@ -93,6 +93,8 @@ pip install -r requirements.txt
 cp ai_worker/.env.example ai_worker/.env
 cp crawler/.env.example crawler/.env
 
+# NOTE: START IN SEPARATE TERMINALS
+
 # Start AI worker (processes new articles)
 python -m ai_worker.messaging.ArticleChangeStreamConsumer
 
@@ -101,115 +103,10 @@ python -m crawler.scheduler.CrawlScheduler
 
 # In another terminal, start Market Signal API
 python -m ai_worker.api.MarketSignalApi
+
+# In another terminal, start AI Engine API Server
+python -m ai_worker.api.ApiServer
 ```
-
----
-
-## 🧪 Integration Testing
-
-### 1. Test Authentication Flow
-```bash
-# Frontend: http://localhost:5173
-1. Click "Register"
-2. Fill form:
-   - Name: Test User
-   - Email: test@example.com
-   - Password: Test123!
-   - Confirm Password: Test123!
-3. Click "Register" button
-4. ✅ Should redirect to /dashboard
-5. ✅ Header shows "Welcome, Test User"
-6. Click "Logout"
-7. ✅ Redirected to /login
-8. Try access /dashboard directly
-9. ✅ Redirected to /login (protected route)
-```
-
-### 2. Test Real-time Chart
-```bash
-# Dashboard page: http://localhost:5173/dashboard
-1. ✅ Chart loads with BTC/USDT historical data (1000 candles)
-2. ✅ Market stats show: Price, 24h Change %, High, Low, Volume
-3. Wait 5-10 seconds
-4. ✅ Price updates in real-time (via WebSocket)
-5. ✅ Candle updates (isFinal: false → updates, isFinal: true → new candle)
-6. Change interval (1m, 5m, 15m, 1h, 4h, 1d)
-7. ✅ Chart reloads with new timeframe data
-```
-
-### 3. Test News Analysis
-```bash
-# News Analysis page: http://localhost:5173/news-analysis
-1. ✅ See list of news articles
-2. ✅ Sentiment Chart displays positive/negative/neutral distribution
-3. Apply filters:
-   - Date range: Last 7 days
-   - Sentiment: Positive only
-4. ✅ List updates with filtered results
-5. ✅ Each article shows:
-   - Title, source, date
-   - Sentiment badge (📈/📉/📊)
-   - Sentiment score
-   - Keywords/entities
-```
-
-### 4. Test AI Causal Analysis (Requires Gemini API Key)
-```bash
-# News Analysis page
-1. Find any news article card
-2. Click "AI Analyze" button
-3. ✅ Loading state shows "Analyzing..."
-4. Wait 2-5 seconds
-5. ✅ Modal opens with:
-   - Predicted Trend: 📈 Up / 📉 Down / 📊 Neutral
-   - Confidence: X%
-   - Analysis: Detailed explanation
-   - Key Factors: Bullet points
-   - Related Entities: Tags
-6. Click X or outside modal to close
-7. ✅ Modal closes
-8. Click "AI Analyze" again on same article
-9. ✅ Cached result loads instantly
-```
-
-### 5. Test AI Engine (Python)
-
-#### Test Crawler
-```bash
-cd ai_engine
-python -m crawler.worker.coindesk_btc_crawler
-
-# Expected output:
-# ✅ Fetching page list: https://www.coindesk.com/tag/bitcoin/1
-# ✅ Successfully crawled X URLs
-# ✅ Crawling detail: https://...
-# ✅ Saved to MongoDB
-```
-
-#### Test AI Structure Learner
-```bash
-cd ai_engine
-python -m crawler.worker.ai_structure_learner
-
-# Expected output:
-# 🤖 AI Structure Learner: coindesk
-# 📥 Fetching HTML from https://...
-# 🤖 Calling Gemini AI...
-# ✅ Successfully learned structure
-# ✅ Template validation passed
-```
-
-#### Test Sentiment Analysis
-```bash
-cd ai_engine
-python -m ai_worker.sentiment_analysis.SentimentAnalysisWorker
-
-# Expected output:
-# Scenario: TIN TỐT (Bullish)
-# Result  : Label = POSITIVE | Numeric Score = 0.92
-```
-
----
 
 ## 📊 Verify Database
 
@@ -231,6 +128,17 @@ python -m ai_worker.sentiment_analysis.SentimentAnalysisWorker
    - Username: admin
    - Password: admin123
 3. Select database: `crypto_news`
+
+### Check TimescaleDB
+1. Access TimescaleDB via psql:
+```bash
+   docker exec -it crypto_timescaledb psql -U admin -d crypto_timescale
+   ```
+2. Run test query:
+```sql
+SELECT * FROM sentiment_analysis LIMIT 10;
+```
+
 
 ### Check Redis
 

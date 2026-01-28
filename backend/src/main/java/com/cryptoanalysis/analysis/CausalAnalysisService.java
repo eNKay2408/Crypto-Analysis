@@ -92,8 +92,8 @@ public class CausalAnalysisService {
       payload.put("content", truncateContent(article.getContent(), 1000));
       payload.put("published_date", article.getPublishedDate().toString());
       payload.put("source", article.getSource());
-      payload.put("sentiment_score", article.getSentimentScore());
-      payload.put("sentiment_label", article.getSentimentLabel());
+      payload.put("sentiment_score", article.getSentimentScore() != null ? article.getSentimentScore() : 0.0);
+      payload.put("sentiment_label", article.getSentimentLabel() != null ? article.getSentimentLabel() : "neutral");
       payload.put("keywords", article.getKeywords() != null ? article.getKeywords() : List.of());
 
       // Set headers
@@ -318,19 +318,21 @@ public class CausalAnalysisService {
 
     // Determine trend from sentiment
     String trend = "neutral";
-    if (article.getSentimentScore() > 0.3) {
+    Double sentimentScore = article.getSentimentScore() != null ? article.getSentimentScore() : 0.0;
+    if (sentimentScore > 0.3) {
       trend = "up";
-    } else if (article.getSentimentScore() < -0.3) {
+    } else if (sentimentScore < -0.3) {
       trend = "down";
     }
     dto.setPredictedTrend(trend);
     dto.setConfidence(0.5);
-    dto.setKeyFactors(List.of("Sentiment: " + article.getSentimentLabel()));
+    dto.setKeyFactors(
+        List.of("Sentiment: " + (article.getSentimentLabel() != null ? article.getSentimentLabel() : "neutral")));
     dto.setTimeHorizon("short-term");
     dto.setRelatedEntities(article.getKeywords());
     dto.setAnalyzedAt(LocalDateTime.now());
-    dto.setSentimentScore(article.getSentimentScore());
-    dto.setSentimentLabel(article.getSentimentLabel());
+    dto.setSentimentScore(sentimentScore);
+    dto.setSentimentLabel(article.getSentimentLabel() != null ? article.getSentimentLabel() : "neutral");
 
     return dto;
   }

@@ -28,8 +28,8 @@ public class SentimentAnalysisService {
   /**
    * Get sentiment trends aggregated by day
    */
-  public List<SentimentTrendDTO> getSentimentTrends(LocalDateTime startDate, LocalDateTime endDate) {
-    log.info("Fetching sentiment trends from {} to {}", startDate, endDate);
+  public List<SentimentTrendDTO> getSentimentTrends(LocalDateTime startDate, LocalDateTime endDate, String entity) {
+    log.info("Fetching sentiment trends from {} to {} for entity={}", startDate, endDate, entity);
 
     // Convert LocalDateTime to OffsetDateTime in UTC
     OffsetDateTime startDateUtc = startDate.atOffset(ZoneOffset.UTC);
@@ -46,6 +46,13 @@ public class SentimentAnalysisService {
       java.time.Instant instant = (java.time.Instant) row[0];
       LocalDateTime date = LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
       String targetEntity = (String) row[1];
+
+      // Filter by entity if provided
+      if (entity != null && !entity.isEmpty() && !entity.equalsIgnoreCase("all")
+          && !targetEntity.equalsIgnoreCase(entity)) {
+        continue;
+      }
+
       Double avgScore = ((Number) row[2]).doubleValue();
       Long count = ((Number) row[3]).longValue();
       String sentimentLabel = (String) row[4];
@@ -67,12 +74,25 @@ public class SentimentAnalysisService {
   /**
    * Get sentiment distribution by label
    */
-  public Map<String, Long> getSentimentDistribution(LocalDateTime startDate, LocalDateTime endDate) {
-    log.info("Fetching sentiment distribution from {} to {}", startDate, endDate);
+  public Map<String, Long> getSentimentDistribution(LocalDateTime startDate, LocalDateTime endDate, String entity) {
+    log.info("Fetching sentiment distribution from {} to {} for entity={}", startDate, endDate, entity);
 
     // Convert LocalDateTime to OffsetDateTime in UTC
     OffsetDateTime startDateUtc = startDate.atOffset(ZoneOffset.UTC);
     OffsetDateTime endDateUtc = endDate.atOffset(ZoneOffset.UTC);
+
+    // If entity filter provided, use findByTargetEntityAndDateRange instead
+    if (entity != null && !entity.isEmpty() && !entity.equalsIgnoreCase("all")) {
+      List<SentimentAnalysis> entityData = sentimentAnalysisRepository.findByTargetEntityAndDateRange(
+          entity.toUpperCase(), startDateUtc, endDateUtc);
+
+      Map<String, Long> distribution = new HashMap<>();
+      for (SentimentAnalysis sa : entityData) {
+        distribution.merge(sa.getSentimentLabel(), 1L, Long::sum);
+      }
+      log.info("Sentiment distribution for {}: {}", entity, distribution);
+      return distribution;
+    }
 
     List<Object[]> results = sentimentAnalysisRepository.getSentimentDistribution(startDateUtc, endDateUtc);
     Map<String, Long> distribution = new HashMap<>();
