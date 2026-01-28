@@ -126,10 +126,21 @@ class ApiService {
 			clearTimeout(timeoutId);
 
 			if (!response.ok) {
-				const errorText = await response.text();
-				throw new Error(
-					`API error: ${response.status} ${response.statusText} - ${errorText}`,
-				);
+				const errorData = await response.json().catch(() => null);
+
+				// Handle validation errors
+				if (errorData && errorData.errors) {
+					const errorMessages = Object.values(errorData.errors).join(", ");
+					throw new Error(errorMessages);
+				}
+
+				// Handle other errors with message
+				if (errorData && errorData.message) {
+					throw new Error(errorData.message);
+				}
+
+				// Fallback error
+				throw new Error(`Request failed with status ${response.status}`);
 			}
 
 			const data = await response.json();
