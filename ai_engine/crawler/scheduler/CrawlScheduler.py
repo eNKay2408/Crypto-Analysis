@@ -5,7 +5,6 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 from crawler.worker.coindesk_btc_crawler import CoinDeskBTCCrawler
-from crawler.worker.viet_stock_crawler import VietStockCrawler
 
 INTERVAL_TIME = 60
 

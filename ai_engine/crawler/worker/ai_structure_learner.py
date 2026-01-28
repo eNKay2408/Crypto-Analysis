@@ -310,8 +310,13 @@ if __name__ == "__main__":
         ),
         # CoinDesk - React/Next.js heavy
         (
-            "https://www.coindesk.com/business/2025/01/16/trump-coin-surges-18-billion-amid-legal-concerns-over-celebrity-memecoins",
+            "https://www.coindesk.com/markets/2026/01/28/btc-eth-sol-move-higher-as-markets-eye-fed-mag-7-earnings-and-weaker-dollar",
             "coindesk",
+        ),
+        # Bitcoin Magazine
+        (
+            "https://bitcoinmagazine.com/news/bitcoin-sets-a-new-123k-all-time-high-as-congress-prepares-for-crypto-week",
+            "bitcoinmagazine",
         ),
     ]
 
@@ -333,7 +338,6 @@ if __name__ == "__main__":
             # If validation passes, stop testing
             if is_valid:
                 print(f"\n🎉 Success with {source_name}!")
-                break
         else:
             print(f"\n❌ Failed to learn template for {source_name}")
 

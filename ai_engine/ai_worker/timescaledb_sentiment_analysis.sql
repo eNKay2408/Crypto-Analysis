@@ -69,6 +69,9 @@ FROM sentiment_analysis
 GROUP BY 1, 2
 WITH NO DATA;
 
+ALTER MATERIALIZED VIEW sentiment_hourly_metrics
+SET (timescaledb.materialized_only = FALSE);
+
 --10. Chính sách tự động cập nhật (mỗi 10 phút cập nhật dữ liệu của 24h qua)
 SELECT add_continuous_aggregate_policy('sentiment_hourly_metrics',
   start_offset => INTERVAL '24 hours',
