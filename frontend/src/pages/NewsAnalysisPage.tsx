@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { SentimentChart } from "../components/news/SentimentChart";
+import { SentimentTimescaleChart } from "../components/news/SentimentTimescaleChart";
 import { CausalAnalysis } from "../components/news/CausalAnalysis";
 import { NewsArticleList } from "../components/news/NewsArticleList";
+import { apiService } from "../services/apiService";
 
 import type { NewsItem, CausalEvent } from "../types/news";
 
@@ -11,6 +12,10 @@ export type { NewsItem, CausalEvent };
 export const NewsAnalysisPage = () => {
 	const [newsData, setNewsData] = useState<NewsItem[]>([]);
 	const [causalEvents, setCausalEvents] = useState<CausalEvent[]>([]);
+	const [sentimentTrends, setSentimentTrends] = useState<any[]>([]);
+	const [sentimentDistribution, setSentimentDistribution] = useState<
+		Record<string, number>
+	>({});
 	const [loading, setLoading] = useState(true);
 	const [dateRange, setDateRange] = useState({
 		start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -22,6 +27,7 @@ export const NewsAnalysisPage = () => {
 
 	useEffect(() => {
 		fetchNewsAnalysis();
+		fetchSentimentData();
 	}, [dateRange, sentimentFilter]);
 
 	const fetchNewsAnalysis = async () => {
@@ -57,6 +63,28 @@ export const NewsAnalysisPage = () => {
 			setCausalEvents([]);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const fetchSentimentData = async () => {
+		try {
+			const startDateTime = `${dateRange.start}T00:00:00`;
+			const endDateTime = `${dateRange.end}T23:59:59`;
+
+			// Fetch sentiment summary from TimescaleDB
+			const summaryResponse = await apiService.getSentimentSummary(
+				startDateTime,
+				endDateTime,
+			);
+
+			if (summaryResponse.success && summaryResponse.data) {
+				setSentimentTrends(summaryResponse.data.trends || []);
+				setSentimentDistribution(summaryResponse.data.distribution || {});
+			}
+		} catch (error) {
+			console.error("Failed to fetch sentiment data from TimescaleDB:", error);
+			setSentimentTrends([]);
+			setSentimentDistribution({});
 		}
 	};
 
@@ -176,35 +204,6 @@ export const NewsAnalysisPage = () => {
 								/>
 							</div>
 						</div>
-
-						{/* Sentiment Filter */}
-						<div className="flex items-center gap-3">
-							<label className="text-sm font-medium text-slate-400">
-								Sentiment:
-							</label>
-							<div className="flex gap-2">
-								{["all", "positive", "neutral", "negative"].map((filter) => (
-									<button
-										key={filter}
-										onClick={() => setSentimentFilter(filter)}
-										className={[
-											"rounded-lg px-4 py-2 text-xs font-medium transition-all",
-											sentimentFilter === filter
-												? filter === "positive"
-													? "border border-emerald-500/50 bg-emerald-500/20 text-emerald-300"
-													: filter === "negative"
-														? "border border-rose-500/50 bg-rose-500/20 text-rose-300"
-														: filter === "neutral"
-															? "border border-slate-500/50 bg-slate-500/20 text-slate-300"
-															: "border border-sky-500/50 bg-sky-500/20 text-sky-300"
-												: "border border-slate-600 bg-slate-700/30 text-slate-400 hover:border-slate-500 hover:bg-slate-700",
-										].join(" ")}
-									>
-										{filter.charAt(0).toUpperCase() + filter.slice(1)}
-									</button>
-								))}
-							</div>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -242,14 +241,17 @@ export const NewsAnalysisPage = () => {
 										</svg>
 									</div>
 									<h2 className="text-lg font-semibold text-slate-100">
-										Sentiment Trends
+										Sentiment Trends (TimescaleDB)
 									</h2>
 								</div>
 								<span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-400">
-									{filteredNews.length} articles
+									Real-time data
 								</span>
 							</div>
-							<SentimentChart newsData={filteredNews} />
+							<SentimentTimescaleChart
+								trends={sentimentTrends}
+								distribution={sentimentDistribution}
+							/>
 						</div>
 					</section>
 
