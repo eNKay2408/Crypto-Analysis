@@ -8,37 +8,53 @@ import { CoinSelector } from "../components/chart/CoinSelector";
 import { IndicatorPanel } from "../components/indicators/IndicatorPanel";
 
 export const DashboardPage = () => {
-	const [selectedCoin, setSelectedCoin] = useState<string>("BTC/USDT");
-	const [selectedInterval, setSelectedInterval] = useState<string>("1d");
-	const chartRef = useRef<ChartRef>(null);
+  const [selectedCoin, setSelectedCoin] = useState<string>("BTC/USDT");
+  const [selectedInterval, setSelectedInterval] = useState<string>("1d");
+  const chartRef = useRef<ChartRef>(null);
 
-	// View period -> Candle interval mapping (optimized for accurate timeframe display)
-	const intervals = [
-		{ label: "1D", value: "1d", candleInterval: "15m" }, // 1 day view, 15 minute candles (96 candles)
-		{ label: "3D", value: "3d", candleInterval: "30m" }, // 3 days view, 30 minute candles (144 candles)
-		{ label: "1W", value: "1w", candleInterval: "1h" }, // 1 week view, 1 hour candles (168 candles)
-		{ label: "1M", value: "1M", candleInterval: "4h" }, // 1 month view, 4 hour candles (180 candles)
-		{ label: "3M", value: "3M", candleInterval: "1d" }, // 3 months view, 1 day candles (90 candles)
-	];
+  // View period -> Candle interval mapping
+  const intervals = [
+    { label: "1d", value: "1d", candleInterval: "5m" },   // 1 day view, 5 minute candles (288 points)
+    { label: "5d", value: "5d", candleInterval: "30m" },  // 5 days view, 30 minute candles (240 points)
+    { label: "1m", value: "1m", candleInterval: "4h" },   // 1 month view, 4 hour candles (180 points)
+    { label: "3m", value: "3m", candleInterval: "12h" },  // 3 months view, 12 hour candles (180 points)
+    { label: "6m", value: "6m", candleInterval: "1d" },   // 6 months view, 1 day candles (180 points)
+    { label: "1y", value: "1y", candleInterval: "1d" },   // 1 year view, 1 day candles (365 points)
+    { label: "5y", value: "5y", candleInterval: "1w" },   // 5 years view, 1 week candles (260 points)
+  ];
 
-	// Calculate limit based on view period and candle interval
-	const calculateLimit = (
-		viewPeriod: string,
-		candleInterval: string,
-	): number => {
-		// Simple mapping: calculate exact number of candles needed
-		// This ensures we get the right timeframe displayed
-		const config: Record<string, number> = {
-			"1d_15m": 96, // 24h / 15min = 96
-			"3d_30m": 144, // 72h / 30min = 144
-			"1w_1h": 168, // 168h / 1h = 168
-			"1M_4h": 180, // 30d * 24h / 4h = 180
-			"3M_1d": 90, // 90d / 1d = 90
-		};
+  // Calculate limit based on view period and candle interval
+  const calculateLimit = (viewPeriod: string, candleInterval: string): number => {
+    const intervalMinutes: Record<string, number> = {
+      "1m": 1,
+      "5m": 5,
+      "15m": 15,
+      "30m": 30,
+      "1h": 60,
+      "4h": 240,
+      "12h": 720,
+      "1d": 1440, // 24 * 60
+      "1w": 10080, // 7 * 24 * 60
+    };
 
-		const key = `${viewPeriod}_${candleInterval}`;
-		return config[key] || 100;
-	};
+    const periodDays: Record<string, number> = {
+      "1d": 1,
+      "5d": 5,
+      "1m": 30,
+      "3m": 90,
+      "6m": 180,
+      "1y": 365,
+      "5y": 1825, // 5 * 365
+    };
+
+    const candleMinutes = intervalMinutes[candleInterval] || 60;
+    const days = periodDays[viewPeriod] || 1;
+    const totalMinutes = days * 24 * 60;
+    const limit = Math.ceil(totalMinutes / candleMinutes);
+    
+    // Add some buffer and cap at reasonable limits
+    return Math.min(Math.max(limit, 100), 5000);
+  };
 
 	return (
 		<div className="flex h-full flex-col bg-slate-950 p-6">
