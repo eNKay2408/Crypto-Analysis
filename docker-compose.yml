@@ -77,6 +77,8 @@ services:
     volumes:
       - timescale_data:/var/lib/postgresql/data
       - ./ai_engine/ai_worker/timescaledb_sentiment_analysis.sql:/docker-entrypoint-initdb.d/init.sql:ro
+# docker exec -it crypto_timescaledb psql -U admin -d crypto_timescale
+# SELECT * FROM sentiment_analysis LIMIT 10;
 
 volumes:
   postgres_data:
