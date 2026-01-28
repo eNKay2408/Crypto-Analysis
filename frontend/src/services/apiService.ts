@@ -371,6 +371,66 @@ class ApiService {
 		});
 	}
 
+	// ==================== Sentiment Analysis APIs (TimescaleDB) ====================
+
+	/**
+	 * Get sentiment trends over time
+	 */
+	async getSentimentTrends(
+		startDate: string,
+		endDate: string,
+	): Promise<ApiResponse<any[]>> {
+		const params = new URLSearchParams({
+			startDate,
+			endDate,
+		});
+		return this.request(`/api/sentiment-analysis/trends?${params}`);
+	}
+
+	/**
+	 * Get sentiment distribution (positive/neutral/negative counts)
+	 */
+	async getSentimentDistribution(
+		startDate: string,
+		endDate: string,
+	): Promise<ApiResponse<Record<string, number>>> {
+		const params = new URLSearchParams({
+			startDate,
+			endDate,
+		});
+		return this.request(`/api/sentiment-analysis/distribution?${params}`);
+	}
+
+	/**
+	 * Get sentiment data by specific entity (e.g., BTC, ETH)
+	 */
+	async getSentimentByEntity(
+		entity: string,
+		startDate: string,
+		endDate: string,
+	): Promise<ApiResponse<any[]>> {
+		const params = new URLSearchParams({
+			entity,
+			startDate,
+			endDate,
+		});
+		return this.request(`/api/sentiment-analysis/by-entity?${params}`);
+	}
+
+	/**
+	 * Get complete sentiment summary (trends + distribution)
+	 */
+	async getSentimentSummary(
+		startDate: string,
+		endDate: string,
+	): Promise<ApiResponse<any>> {
+		const params = new URLSearchParams({
+			startDate,
+			endDate,
+		});
+		return this.request(`/api/sentiment-analysis/summary?${params}`);
+	}
+
 	// ==================== Watchlist APIs (TODO: Backend implementation) ====================
 
 	/**

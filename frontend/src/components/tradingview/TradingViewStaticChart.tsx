@@ -23,6 +23,7 @@ import {
 	CandlestickData,
 	MarketStats,
 } from "../../services/marketDataService";
+import { websocketService } from "../../services/websocketService";
 import { useChartTool, type Drawing } from "../../contexts/ChartToolContext";
 import { useIndicators } from "../../contexts/IndicatorContext";
 import { IndicatorLegend } from "../indicators/IndicatorLegend";
@@ -686,13 +687,104 @@ export const TradingViewStaticChart = forwardRef<ChartRef, ChartProps>(
 			}
 		}, [interval, symbol, candleInterval, limit]);
 
+		// WebSocket real-time updates
+		useEffect(() => {
+			let isSubscribed = false;
+
+			const setupWebSocket = async () => {
+				try {
+					// Connect to WebSocket
+					await websocketService.connect();
+
+					// Subscribe to kline updates
+					const actualInterval = candleInterval || interval;
+					websocketService.subscribeKline(
+						symbol,
+						actualInterval,
+						(klineData) => {
+							if (!candlestickSeriesRef.current || !volumeSeriesRef.current)
+								return;
+
+							// Convert to chart format
+							const time = Math.floor(
+								klineData.openTime / 1000,
+							) as UTCTimestamp;
+							const candlePoint = {
+								time: time,
+								open: parseFloat(klineData.open),
+								high: parseFloat(klineData.high),
+								low: parseFloat(klineData.low),
+								close: parseFloat(klineData.close),
+							};
+
+							const volumePoint = {
+								time: time,
+								value: parseFloat(klineData.volume),
+								color:
+									candlePoint.close >= candlePoint.open
+										? "#10b98133"
+										: "#ef444433",
+							};
+
+							// Update chart
+							if (klineData.isClosed) {
+								// Candle is closed, add new candle
+								candlestickSeriesRef.current.update(candlePoint);
+								volumeSeriesRef.current.update(volumePoint);
+
+								// Update candleDataRef
+								candleDataRef.current.push(candlePoint);
+							} else {
+								// Candle is still forming, update last candle
+								candlestickSeriesRef.current.update(candlePoint);
+								volumeSeriesRef.current.update(volumePoint);
+
+								// Update last item in candleDataRef
+								if (candleDataRef.current.length > 0) {
+									candleDataRef.current[candleDataRef.current.length - 1] =
+										candlePoint;
+								}
+							}
+
+							// Update stats with latest price
+							setStats((prev) => ({
+								...prev,
+								currentPrice: candlePoint.close,
+								priceChange: candlePoint.close - candlePoint.open,
+								priceChangePercent:
+									((candlePoint.close - candlePoint.open) / candlePoint.open) *
+									100,
+							}));
+						},
+					);
+
+					isSubscribed = true;
+					console.log(
+						`✅ Subscribed to real-time updates for ${symbol} ${actualInterval}`,
+					);
+				} catch (error) {
+					console.error("Failed to setup WebSocket:", error);
+				}
+			};
+
+			setupWebSocket();
+
+			// Cleanup
+			return () => {
+				if (isSubscribed) {
+					const actualInterval = candleInterval || interval;
+					websocketService.unsubscribeKline(symbol, actualInterval);
+					console.log(`❌ Unsubscribed from ${symbol} ${actualInterval}`);
+				}
+			};
+		}, [symbol, interval, candleInterval]);
+
 		// Re-render indicators when they change
 		useEffect(() => {
 			if (chartRef.current) {
 				renderIndicators();
 			}
 		}, [renderIndicators]);
-
 		// Clamp coordinates to chart bounds and candle data range
 		const clampChartCoordinates = useCallback(
 			(

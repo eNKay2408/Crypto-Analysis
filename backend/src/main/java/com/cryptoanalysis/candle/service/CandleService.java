@@ -2,9 +2,9 @@ package com.cryptoanalysis.candle.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -50,24 +50,27 @@ public class CandleService {
       // 1. Try database first
       List<Kline> dbCandles = klineRepository.findLatestCandles(
           symbol, interval, PageRequest.of(0, limit));
-      
+
       if (dbCandles.size() >= limit) {
         log.info("Serving {} candles from database for {} {}", dbCandles.size(), symbol, interval);
-        return candleMapper.toDTOList(dbCandles);
+        List<CandleDTO> candles = candleMapper.toDTOList(dbCandles);
+        // Reverse to get chronological order (oldest to newest) for chart display
+        Collections.reverse(candles);
+        return candles;
       }
-      
+
       // 2. Database doesn't have enough data, fetch from Binance API
-      log.info("Database has only {} candles, fetching from Binance API for {} {}", 
+      log.info("Database has only {} candles, fetching from Binance API for {} {}",
           dbCandles.size(), symbol, interval);
       List<CandleDTO> apiCandles = fetchFromBinanceAPI(symbol, interval, limit);
-      
+
       // 3. Save to database asynchronously (don't block response)
       if (!apiCandles.isEmpty()) {
         saveCandlesAsync(apiCandles, symbol, interval);
       }
-      
+
       return apiCandles;
-      
+
     } catch (Exception e) {
       log.error("Error fetching candles: ", e);
       return new ArrayList<>();
@@ -79,7 +82,7 @@ public class CandleService {
    */
   public List<CandleDTO> fetchFromBinanceAPI(String symbol, String interval, int limit) {
     try {
-      log.info("Fetching candles from Binance API: symbol={}, interval={}, limit={}", 
+      log.info("Fetching candles from Binance API: symbol={}, interval={}, limit={}",
           symbol, interval, limit);
 
       // Build Binance API URL
@@ -114,23 +117,23 @@ public class CandleService {
   public void saveCandlesAsync(List<CandleDTO> candles, String symbol, String interval) {
     try {
       int saved = 0;
-      
+
       for (CandleDTO dto : candles) {
         Kline kline = candleMapper.toEntity(dto, symbol, interval);
-        
+
         // Check if exists to avoid duplicate constraint violation
         Optional<Kline> existing = klineRepository
             .findBySymbolAndIntervalAndOpenTime(
                 kline.getSymbol(), kline.getInterval(), kline.getOpenTime());
-        
+
         if (existing.isEmpty()) {
           klineRepository.save(kline);
           saved++;
         }
       }
-      
+
       log.info("Saved {} new candles to database for {} {}", saved, symbol, interval);
-      
+
     } catch (Exception e) {
       log.error("Error saving candles to database: ", e);
     }
