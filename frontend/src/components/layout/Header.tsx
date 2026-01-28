@@ -14,9 +14,8 @@ export const Header = () => {
 		<header className="flex h-14 items-center justify-between border-b border-slate-800 bg-slate-900/90 px-7">
 			<div className="flex items-baseline gap-3">
 				<span className="rounded-full bg-sky-500 px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-950">
-					TradeScope
+					CRYPTO ANALYSIS
 				</span>
-				
 			</div>
 			<div className="flex items-center gap-3">
 				{isAuthenticated && user && (

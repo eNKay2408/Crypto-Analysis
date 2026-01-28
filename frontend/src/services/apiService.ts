@@ -423,12 +423,41 @@ class ApiService {
 	async getSentimentSummary(
 		startDate: string,
 		endDate: string,
+		entity?: string,
 	): Promise<ApiResponse<any>> {
 		const params = new URLSearchParams({
 			startDate,
 			endDate,
 		});
+		if (entity && entity !== "all") {
+			params.append("entity", entity);
+		}
 		return this.request(`/api/sentiment-analysis/summary?${params}`);
+	}
+
+	/**
+	 * Get market signal from AI engine
+	 */
+	async getMarketSignal(
+		symbol: string,
+		windowH: number = 4,
+	): Promise<ApiResponse<any>> {
+		try {
+			const response = await fetch(
+				`http://localhost:8000/api/v1/sentiment/signal?symbol=${symbol}&window_h=${windowH}`,
+			);
+			const data = await response.json();
+			return {
+				success: true,
+				data: data,
+			};
+		} catch (error) {
+			return {
+				success: false,
+				data: null,
+				message: "Failed to fetch market signal",
+			};
+		}
 	}
 
 	// ==================== Watchlist APIs (TODO: Backend implementation) ====================

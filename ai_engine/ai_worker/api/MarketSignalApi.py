@@ -1,24 +1,38 @@
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from ai_worker.db_manager.PostgresqlDbManager import PostgresqlDbManager
 
 app = FastAPI(title="Crypto Sentiment Signal API")
+
+# Add CORS middleware to allow frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],  # Vite and React dev servers
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 db = PostgresqlDbManager()
 
 
-def calculate_signal(current_mas, prev_mas, threshold_greed=0.7, threshold_fear=0.3):
+def calculate_signal(current_mas, prev_mas, threshold_greed=0.7, threshold_fear=-0.3):
     if current_mas >= threshold_greed:
         return {
             "signal": "WARNING",
             "advice": "Gradual profit-taking (Extreme Greed)",
-            "color": "red"
+            "color": "red",
         }
 
     if current_mas <= threshold_fear:
         return {
             "signal": "RECOMMEND",
             "advice": "Buy the dip / Monitor closely (Extreme Fear)",
-            "color": "green"
+            "color": "green",
         }
 
     # Trend detection (Bullish sentiment growth)
@@ -26,36 +40,54 @@ def calculate_signal(current_mas, prev_mas, threshold_greed=0.7, threshold_fear=
         return {
             "signal": "HOLD",
             "advice": "Maintain position (Positive momentum)",
-            "color": "blue"
+            "color": "blue",
         }
 
     # Sideways market
     return {
         "signal": "NEUTRAL",
         "advice": "Market is range-bound / No clear trend",
-        "color": "gray"
+        "color": "gray",
     }
 
 
 @app.get("/api/v1/sentiment/signal")
 async def get_sentiment_signal(
-        symbol: str = Query(..., examples=["BTC"]),
-        window_h: int = Query(4, examples=[4])  # Default window time is 4h
+    symbol: str = Query(..., examples=["BTC"]),
+    window_h: int = Query(4, examples=[4]),  # Default window time is 4h
 ):
     # Query SQL with Window Function to calculate Moving Average
-    query = f"""
-        SELECT 
-            bucket,
-            weighted_avg_sentiment,
-            AVG(weighted_avg_sentiment) OVER (
-                ORDER BY bucket 
-                ROWS BETWEEN {window_h - 1} PRECEDING AND CURRENT ROW
-            ) AS mas_value
-        FROM sentiment_hourly_metrics
-        WHERE target_entity = '{symbol.upper()}'
-        ORDER BY bucket DESC
-        LIMIT 2;
-    """
+    # Support 'ALL' symbol for aggregated signal across all entities
+    if symbol.upper() == "ALL":
+        query = f"""
+            SELECT 
+                bucket,
+                SUM(weighted_avg_sentiment * article_count) / NULLIF(SUM(article_count), 0) AS weighted_avg_sentiment,
+                AVG(SUM(weighted_avg_sentiment * article_count) / NULLIF(SUM(article_count), 0)) OVER (
+                    ORDER BY bucket 
+                    ROWS BETWEEN {window_h - 1} PRECEDING AND CURRENT ROW
+                ) AS mas_value,
+                SUM(article_count) AS total_article_count
+            FROM sentiment_hourly_metrics
+            GROUP BY bucket
+            ORDER BY bucket DESC
+            LIMIT 2;
+        """
+    else:
+        query = f"""
+            SELECT 
+                bucket,
+                weighted_avg_sentiment,
+                AVG(weighted_avg_sentiment) OVER (
+                    ORDER BY bucket 
+                    ROWS BETWEEN {window_h - 1} PRECEDING AND CURRENT ROW
+                ) AS mas_value,
+                article_count
+            FROM sentiment_hourly_metrics
+            WHERE target_entity = '{symbol.upper()}'
+            ORDER BY bucket DESC
+            LIMIT 2;
+        """
 
     with db.conn.cursor() as cursor:
         cursor.execute(query)
@@ -67,6 +99,8 @@ async def get_sentiment_signal(
     latest_data = rows[0]
     # Index 2 is mas_value from Window Function
     current_mas = latest_data[2]
+    # Index 3 is article_count (or total_article_count for ALL)
+    article_count = latest_data[3] if len(latest_data) > 3 else latest_data[1]
 
     if current_mas is None:
         return {
@@ -85,8 +119,8 @@ async def get_sentiment_signal(
         "symbol": symbol.upper(),
         "window": f"{window_h}h",
         "current_mas": round(current_mas, 4),
-        "article_count_last_hour": latest_data[1],
-        "recommendation": strategy
+        "article_count_last_hour": article_count,
+        "recommendation": strategy,
     }
 
 

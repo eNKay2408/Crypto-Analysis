@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { SentimentTimescaleChart } from "../components/news/SentimentTimescaleChart";
 import { CausalAnalysis } from "../components/news/CausalAnalysis";
 import { NewsArticleList } from "../components/news/NewsArticleList";
+import { MarketSignalCard } from "../components/news/MarketSignalCard";
 import { apiService } from "../services/apiService";
 
 import type { NewsItem, CausalEvent } from "../types/news";
@@ -24,11 +25,15 @@ export const NewsAnalysisPage = () => {
 		end: new Date().toISOString().split("T")[0],
 	});
 	const [sentimentFilter, setSentimentFilter] = useState<string>("all");
+	const [entityFilter, setEntityFilter] = useState<string>("all");
 
 	useEffect(() => {
 		fetchNewsAnalysis();
-		fetchSentimentData();
 	}, [dateRange, sentimentFilter]);
+
+	useEffect(() => {
+		fetchSentimentData();
+	}, [dateRange, entityFilter]);
 
 	const fetchNewsAnalysis = async () => {
 		setLoading(true);
@@ -71,10 +76,11 @@ export const NewsAnalysisPage = () => {
 			const startDateTime = `${dateRange.start}T00:00:00`;
 			const endDateTime = `${dateRange.end}T23:59:59`;
 
-			// Fetch sentiment summary from TimescaleDB
+			// Fetch sentiment summary from TimescaleDB with entity filter
 			const summaryResponse = await apiService.getSentimentSummary(
 				startDateTime,
 				endDateTime,
+				entityFilter !== "all" ? entityFilter : undefined,
 			);
 
 			if (summaryResponse.success && summaryResponse.data) {
@@ -89,8 +95,20 @@ export const NewsAnalysisPage = () => {
 	};
 
 	const filteredNews = newsData.filter((news) => {
-		if (sentimentFilter === "all") return true;
-		return news.sentiment.label === sentimentFilter;
+		// Filter by sentiment
+		if (sentimentFilter !== "all" && news.sentiment.label !== sentimentFilter) {
+			return false;
+		}
+
+		// Filter by entity (check in keywords or title)
+		if (entityFilter !== "all") {
+			const hasEntity =
+				news.keywords?.some((k) => k.toUpperCase() === entityFilter) ||
+				news.title.toUpperCase().includes(entityFilter);
+			if (!hasEntity) return false;
+		}
+
+		return true;
 	});
 
 	return (
@@ -134,24 +152,6 @@ export const NewsAnalysisPage = () => {
 								<div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></div>
 								<span className="text-xs font-semibold text-emerald-300">
 									Live Analysis
-								</span>
-							</div>
-							<div className="flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2">
-								<svg
-									className="h-4 w-4 text-slate-400"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
-									/>
-								</svg>
-								<span className="text-xs font-medium text-slate-300">
-									{newsData.length} Articles
 								</span>
 							</div>
 							<button
@@ -204,6 +204,26 @@ export const NewsAnalysisPage = () => {
 								/>
 							</div>
 						</div>
+
+						{/* Entity/Coin Filter */}
+						<div className="flex items-center gap-3">
+							<label className="text-sm font-medium text-slate-400">
+								Coin:
+							</label>
+							<select
+								value={entityFilter}
+								onChange={(e) => setEntityFilter(e.target.value)}
+								className="rounded-lg border border-slate-600 bg-slate-700 px-4 py-2 text-sm text-slate-200 outline-none focus:border-sky-500"
+							>
+								<option value="all">All Coins</option>
+								<option value="BTC">BTC</option>
+								<option value="ETH">ETH</option>
+								<option value="USDT">USDT</option>
+								<option value="BNB">BNB</option>
+								<option value="XRP">XRP</option>
+								<option value="SOL">SOL</option>
+							</select>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -220,6 +240,9 @@ export const NewsAnalysisPage = () => {
 				</div>
 			) : (
 				<>
+					{/* Market Signal Card */}
+					<MarketSignalCard entity={entityFilter} />
+
 					{/* Sentiment Overview Chart */}
 					<section className="rounded-xl border border-slate-700 bg-slate-800 p-6">
 						<div>
@@ -252,41 +275,6 @@ export const NewsAnalysisPage = () => {
 								trends={sentimentTrends}
 								distribution={sentimentDistribution}
 							/>
-						</div>
-					</section>
-
-					{/* Causal Analysis */}
-					<section className="rounded-xl border border-slate-700 bg-slate-800 p-6">
-						<div>
-							<div className="mb-6">
-								<div className="flex items-center gap-3">
-									<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-700">
-										<svg
-											className="h-5 w-5 text-slate-300"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth={2}
-												d="M13 10V3L4 14h7v7l9-11h-7z"
-											/>
-										</svg>
-									</div>
-									<div>
-										<h2 className="text-lg font-semibold text-slate-100">
-											Causal Analysis: Price Impact
-										</h2>
-										<p className="mt-1 text-sm text-slate-400">
-											AI-powered analysis showing how news events correlate with
-											price movements
-										</p>
-									</div>
-								</div>
-							</div>
-							<CausalAnalysis events={causalEvents} />
 						</div>
 					</section>
 
