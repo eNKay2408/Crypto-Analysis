@@ -192,7 +192,7 @@ public class CausalAnalysisService {
         article.getTitle(),
         article.getPublishedDate(),
         article.getSource(),
-        truncateContent(article.getContentBody(), 1000),
+        truncateContent(article.getContent(), 1000),
         article.getSentimentScore(),
         article.getSentimentLabel(),
         article.getKeywords());
