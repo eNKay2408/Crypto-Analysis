@@ -22,7 +22,7 @@ public interface NewsRepository extends MongoRepository<NewsArticle, String> {
   /**
    * Find news articles by sentiment label and date range
    */
-  @Query("{ 'sentiment_label': ?0, 'published_date': { $gte: ?1, $lte: ?2 } }")
+  @Query("{ 'sentiment_label': ?0, 'publishedAt': { $gte: ?1, $lte: ?2 } }")
   Page<NewsArticle> findBySentimentLabelAndPublishedDateBetween(
       String sentimentLabel,
       LocalDateTime startDate,

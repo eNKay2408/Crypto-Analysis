@@ -12,7 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "news")
+@Document(collection = "articles")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,13 +24,23 @@ public class NewsArticle {
 
   private String source;
 
+  @Field("sourceName")
+  private String sourceName;
+
   private String title;
 
   private String url;
 
+  @Field("contentBody")
   private String content;
 
-  @Field("published_date")
+  @Field("contentLength")
+  private Integer contentLength;
+
+  @Field("isAnalyzed")
+  private Boolean isAnalyzed;
+
+  @Field("publishedAt")
   private LocalDateTime publishedDate;
 
   @Field("sentiment_score")

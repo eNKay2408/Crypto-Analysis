@@ -81,7 +81,7 @@ npm run dev
 
 ✅ Frontend running on: **http://localhost:5173**
 
-### Step 5: Start AI Engine (Optional)
+### Step 5: Start AI Engine 
 ```bash
 # Open new terminal
 cd ai_engine
@@ -96,8 +96,11 @@ cp crawler/.env.example crawler/.env
 # Start AI worker (processes new articles)
 python -m ai_worker.messaging.ArticleChangeStreamConsumer
 
-# In another terminal, start crawler (optional - fetches news every 60s)
+# In another terminal, start crawler
 python -m crawler.scheduler.CrawlScheduler
+
+# In another terminal, start Market Signal API
+python -m ai_worker.api.MarketSignalApi
 ```
 
 ---
